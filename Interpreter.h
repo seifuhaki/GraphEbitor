@@ -1,4 +1,4 @@
-#ifndef _INTERPRETER_H_
+﻿#ifndef _INTERPRETER_H_
 #define	_INTERPRETER_H_ 
 
 #include "Exception.h"

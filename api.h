@@ -1,69 +1,69 @@
-#ifndef _API_H_
+﻿#ifndef _API_H_
 #define _API_H_ 1
 
-//API�ӿڡ���ΪInterpreter������͵ײ�Manager���ӵĽӿ�
-//������������й��ܽӿ�
-//APIֻ�������ĳ������жϣ�������쳣�׳����ɸ��ײ�Manager���
+//API接口。作为Interpreter层操作和底层Manager连接的接口
+//包含程序的所有功能接口
+//API只做初步的程序功能判断，具体的异常抛出仍由各底层Manager完成
 class API {
 public:
-	//���캯��
+	//构造函数
 	API();
-	//��������
+	//析构函数
 	~API();
-	//���룺������Where������������Where����ֵ��
-	//�����void
-	//���ܣ����ذ�������Ŀ����������Where�����ļ�¼�ı�
-	//�ڶ�������ѯ����£�����Where�µ��߼���������Table��ƴ��
-	//�쳣���ɵײ㴦��
-	//����������ڣ��׳�table_not_exist�쳣
-	//������Բ����ڣ��׳�attribute_not_exist�쳣
-	//���Where�����е������������Ͳ�ƥ�䣬�׳�data_type_conflict�쳣
+	//输入：表名、Where条件属性名、Where条件值域
+	//输出：void
+	//功能：返回包含所有目标属性满足Where条件的记录的表
+	//在多条件查询情况下，根据Where下的逻辑条件进行Table的拼接
+	//异常：由底层处理
+	//如果表不存在，抛出table_not_exist异常
+	//如果属性不存在，抛出attribute_not_exist异常
+	//如果Where条件中的两个数据类型不匹配，抛出data_type_conflict异常
 	void selectRecord(std::string table_name, std::vector<std::string> target_attr, std::vector<Where> where, char operation);
-	//���룺������Where������������Where����ֵ��
-	//�����void
-	//���ܣ�ɾ����Ӧ�����µ�Table�ڼ�¼(��ɾ�����ļ�)
-	//�쳣���ɵײ㴦��
-	//����������ڣ��׳�table_not_exist�쳣
-	//������Բ����ڣ��׳�attribute_not_exist�쳣
-	//���Where�����е������������Ͳ�ƥ�䣬�׳�data_type_conflict�쳣
+	//输入：表名、Where条件属性名、Where条件值域
+	//输出：void
+	//功能：删除对应条件下的Table内记录(不删除表文件)
+	//异常：由底层处理
+	//如果表不存在，抛出table_not_exist异常
+	//如果属性不存在，抛出attribute_not_exist异常
+	//如果Where条件中的两个数据类型不匹配，抛出data_type_conflict异常
 	void deleteRecord(std::string tableName);
 	void deleteRecord(std::string tableName, std::string attributeName, std::string relation, std::string value);
-	//���룺������һ��Ԫ�����
-	//�����void
-	//���ܣ����Ӧ���ڲ���һ����¼
-	//�쳣���ɵײ㴦��
-	//���Ԫ�����Ͳ�ƥ�䣬�׳�tuple_type_conflict�쳣
-	//���������ͻ���׳�primary_key_conflict�쳣
-	//���unique���Գ�ͻ���׳�unique_conflict�쳣
-	//����������ڣ��׳�table_not_exist�쳣
+	//输入：表名、一个元组对象
+	//输出：void
+	//功能：向对应表内插入一条记录
+	//异常：由底层处理
+	//如果元组类型不匹配，抛出tuple_type_conflict异常
+	//如果主键冲突，抛出primary_key_conflict异常
+	//如果unique属性冲突，抛出unique_conflict异常
+	//如果表不存在，抛出table_not_exist异常
 	void insertRecord(std::string table_name, Tuple& tuple);
-	//���룺���������ԣ�����������
-	//������Ƿ񴴽��ɹ�
-	//���ܣ������ݿ��в���һ������Ԫ��Ϣ
-	//�쳣���ɵײ㴦��
-	//����Ѿ�����ͬ�����ı����ڣ����׳�table_exist�쳣
+	//输入：表名，属性，主键，索引
+	//输出：是否创建成功
+	//功能：在数据库中插入一个表的元信息
+	//异常：由底层处理
+	//如果已经有相同表名的表存在，则抛出table_exist异常
 	void createTable(std::string table_name, Attribute attribute, int primary, Index index);
-	//���룺����
-	//������Ƿ�ɾ���ɹ�
-	//���ܣ������ݿ���ɾ��һ������Ԫ��Ϣ�����������м�¼(ɾ�����ļ�)
-	//�쳣���ɵײ㴦��
-	//����������ڣ��׳�table_not_exist�쳣
+	//输入：表名
+	//输出：是否删除成功
+	//功能：在数据库中删除一个表的元信息，及表内所有记录(删除表文件)
+	//异常：由底层处理
+	//如果表不存在，抛出table_not_exist异常
 	void dropTable(std::string table_name);
-	//���룺��������������������
-	//������Ƿ񴴽��ɹ�
-	//���ܣ������ݿ��и��¶�Ӧ����������Ϣ����ָ�������Ͻ���һ��������
-	//�쳣���ɵײ㴦��
-	//����������ڣ��׳�table_not_exist�쳣
-	//�����Ӧ���Բ����ڣ��׳�attribute_not_exist�쳣
-	//�����Ӧ�����Ѿ������������׳�index_exist�쳣
+	//输入：表名，索引名，属性名
+	//输出：是否创建成功
+	//功能：在数据库中更新对应表的索引信息（在指定属性上建立一个索引）
+	//异常：由底层处理
+	//如果表不存在，抛出table_not_exist异常
+	//如果对应属性不存在，抛出attribute_not_exist异常
+	//如果对应属性已经有了索引，抛出index_exist异常
 	void createIndex(std::string table_name, std::string index_name, std::string attr_name);
-	//���룺������������
-	//������Ƿ�ɾ���ɹ�
-	//���ܣ�ɾ����Ӧ���Ķ�Ӧ�����ϵ�����
-	//�쳣���ɵײ㴦��
-	//����������ڣ��׳�table_not_exist�쳣
-	//�����Ӧ���Բ����ڣ��׳�attribute_not_exist�쳣
-	//�����Ӧ����û���������׳�index_not_exist�쳣
+	//输入：表名，索引名
+	//输出：是否删除成功
+	//功能：删除对应表的对应属性上的索引
+	//异常：由底层处理
+	//如果表不存在，抛出table_not_exist异常
+	//如果对应属性不存在，抛出attribute_not_exist异常
+	//如果对应属性没有索引，抛出index_not_exist异常
 	bool dropIndex(std::string table_name, std::string index_name);
 
 private:

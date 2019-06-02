@@ -1,4 +1,4 @@
-#include "Interpreter.h"
+ï»¿#include "Interpreter.h"
 
 interpreter::interpreter() {
 	this->instruction.clear();
@@ -341,7 +341,7 @@ void interpreter::selectAllFrom() {
 		}
 	}
 	API.selectRecord(tableName, attributeNames, relations, values);
-	//ÕâÀï²»È·¶¨Âß¼­ÊÇ·ñÕıÈ·
+	//è¿™é‡Œä¸ç¡®å®šé€»è¾‘æ˜¯å¦æ­£ç¡®
 	// select * from ... where ... and ... (API)
 
 }
@@ -585,12 +585,12 @@ void interpreter::createTable() {
 	primaryKey = this->instructionList[index];
 
 	API.createTable(tableName, attributeNames, types, unique, primaryKey, token);
-	//²»È·¶¨
+	//ä¸ç¡®å®š
 	/*	create table ... (
 			attributeName type ifunique,
 			...
 			primary key ( primaryKey)
-		£©;
+		ï¼‰;
 		(API)
 	*/
 

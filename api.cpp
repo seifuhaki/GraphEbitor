@@ -1,22 +1,22 @@
-#include <algorithm>
+ï»¿#include <algorithm>
 #include <vector>
 #include <iterator>
 #include "api.h"
 
-//¹¹Ôìº¯Êı
+//æ„é€ å‡½æ•°
 API::API() {}
 
-//Îö¹¹º¯Êı
+//ææ„å‡½æ•°
 API::~API() {}
 
-//ÊäÈë£º±íÃû¡¢WhereÌõ¼şÊôĞÔÃû¡¢WhereÌõ¼şÖµÓò
-//Êä³ö£ºTableÀàĞÍ¶ÔÏó(°üº¬¶ÔÓ¦µÄÊôĞÔÔª×é)
-//¹¦ÄÜ£º·µ»Ø°üº¬ËùÓĞÄ¿±êÊôĞÔÂú×ãWhereÌõ¼şµÄ¼ÇÂ¼µÄ±í
-//ÔÚ¶àÌõ¼ş²éÑ¯Çé¿öÏÂ£¬¸ù¾İWhereÏÂµÄÂß¼­Ìõ¼ş½øĞĞTableµÄÆ´½Ó
-//Òì³££ºÓÉµ×²ã´¦Àí
-//Èç¹û±í²»´æÔÚ£¬Å×³ötable_not_existÒì³£
-//Èç¹ûÊôĞÔ²»´æÔÚ£¬Å×³öattribute_not_existÒì³£
-//Èç¹ûWhereÌõ¼şÖĞµÄÁ½¸öÊı¾İÀàĞÍ²»Æ¥Åä£¬Å×³ödata_type_conflictÒì³£
+//è¾“å…¥ï¼šè¡¨åã€Whereæ¡ä»¶å±æ€§åã€Whereæ¡ä»¶å€¼åŸŸ
+//è¾“å‡ºï¼šTableç±»å‹å¯¹è±¡(åŒ…å«å¯¹åº”çš„å±æ€§å…ƒç»„)
+//åŠŸèƒ½ï¼šè¿”å›åŒ…å«æ‰€æœ‰ç›®æ ‡å±æ€§æ»¡è¶³Whereæ¡ä»¶çš„è®°å½•çš„è¡¨
+//åœ¨å¤šæ¡ä»¶æŸ¥è¯¢æƒ…å†µä¸‹ï¼Œæ ¹æ®Whereä¸‹çš„é€»è¾‘æ¡ä»¶è¿›è¡ŒTableçš„æ‹¼æ¥
+//å¼‚å¸¸ï¼šç”±åº•å±‚å¤„ç†
+//å¦‚æœè¡¨ä¸å­˜åœ¨ï¼ŒæŠ›å‡ºtable_not_existå¼‚å¸¸
+//å¦‚æœå±æ€§ä¸å­˜åœ¨ï¼ŒæŠ›å‡ºattribute_not_existå¼‚å¸¸
+//å¦‚æœWhereæ¡ä»¶ä¸­çš„ä¸¤ä¸ªæ•°æ®ç±»å‹ä¸åŒ¹é…ï¼ŒæŠ›å‡ºdata_type_conflictå¼‚å¸¸
 Table API::selectRecord(std::string table_name, std::vector<std::string> target_attr, std::vector<Where> where, char operation)
 {
 	if (target_attr.size() == 0) {
@@ -35,13 +35,13 @@ Table API::selectRecord(std::string table_name, std::vector<std::string> target_
 			return unionTable(table1, table2, target_attr[0], where[0]);
 	}
 }
-//ÊäÈë£º±íÃû¡¢WhereÌõ¼şÊôĞÔÃû¡¢WhereÌõ¼şÖµÓò
-//Êä³ö£ºvoid
-//¹¦ÄÜ£ºÉ¾³ı¶ÔÓ¦Ìõ¼şÏÂµÄTableÄÚ¼ÇÂ¼(²»É¾³ı±íÎÄ¼ş)
-//Òì³££ºÓÉµ×²ã´¦Àí
-//Èç¹û±í²»´æÔÚ£¬Å×³ötable_not_existÒì³£
-//Èç¹ûÊôĞÔ²»´æÔÚ£¬Å×³öattribute_not_existÒì³£
-//Èç¹ûWhereÌõ¼şÖĞµÄÁ½¸öÊı¾İÀàĞÍ²»Æ¥Åä£¬Å×³ödata_type_conflictÒì³£
+//è¾“å…¥ï¼šè¡¨åã€Whereæ¡ä»¶å±æ€§åã€Whereæ¡ä»¶å€¼åŸŸ
+//è¾“å‡ºï¼švoid
+//åŠŸèƒ½ï¼šåˆ é™¤å¯¹åº”æ¡ä»¶ä¸‹çš„Tableå†…è®°å½•(ä¸åˆ é™¤è¡¨æ–‡ä»¶)
+//å¼‚å¸¸ï¼šç”±åº•å±‚å¤„ç†
+//å¦‚æœè¡¨ä¸å­˜åœ¨ï¼ŒæŠ›å‡ºtable_not_existå¼‚å¸¸
+//å¦‚æœå±æ€§ä¸å­˜åœ¨ï¼ŒæŠ›å‡ºattribute_not_existå¼‚å¸¸
+//å¦‚æœWhereæ¡ä»¶ä¸­çš„ä¸¤ä¸ªæ•°æ®ç±»å‹ä¸åŒ¹é…ï¼ŒæŠ›å‡ºdata_type_conflictå¼‚å¸¸
 int API::deleteRecord(std::string table_name, std::string target_attr, Where where)
 {
 	int result;
@@ -51,24 +51,24 @@ int API::deleteRecord(std::string table_name, std::string target_attr, Where whe
 		result = record.deleteRecord(table_name, target_attr, where);
 	return result;
 }
-//ÊäÈë£º±íÃû¡¢Ò»¸öÔª×é¶ÔÏó
-//Êä³ö£ºvoid
-//¹¦ÄÜ£ºÏò¶ÔÓ¦±íÄÚ²åÈëÒ»Ìõ¼ÇÂ¼
-//Òì³££ºÓÉµ×²ã´¦Àí
-//Èç¹ûÔª×éÀàĞÍ²»Æ¥Åä£¬Å×³ötuple_type_conflictÒì³£
-//Èç¹ûÖ÷¼ü³åÍ»£¬Å×³öprimary_key_conflictÒì³£
-//Èç¹ûuniqueÊôĞÔ³åÍ»£¬Å×³öunique_conflictÒì³£
-//Èç¹û±í²»´æÔÚ£¬Å×³ötable_not_existÒì³£
+//è¾“å…¥ï¼šè¡¨åã€ä¸€ä¸ªå…ƒç»„å¯¹è±¡
+//è¾“å‡ºï¼švoid
+//åŠŸèƒ½ï¼šå‘å¯¹åº”è¡¨å†…æ’å…¥ä¸€æ¡è®°å½•
+//å¼‚å¸¸ï¼šç”±åº•å±‚å¤„ç†
+//å¦‚æœå…ƒç»„ç±»å‹ä¸åŒ¹é…ï¼ŒæŠ›å‡ºtuple_type_conflictå¼‚å¸¸
+//å¦‚æœä¸»é”®å†²çªï¼ŒæŠ›å‡ºprimary_key_conflictå¼‚å¸¸
+//å¦‚æœuniqueå±æ€§å†²çªï¼ŒæŠ›å‡ºunique_conflictå¼‚å¸¸
+//å¦‚æœè¡¨ä¸å­˜åœ¨ï¼ŒæŠ›å‡ºtable_not_existå¼‚å¸¸
 void API::insertRecord(std::string table_name, Tuple& tuple)
 {
 	record.insertRecord(table_name, tuple);
 	return;
 }
-//ÊäÈë£ºTableÀàĞÍ¶ÔÏó
-//Êä³ö£ºÊÇ·ñ´´½¨³É¹¦
-//¹¦ÄÜ£ºÔÚÊı¾İ¿âÖĞ²åÈëÒ»¸ö±íµÄÔªĞÅÏ¢
-//Òì³££ºÓÉµ×²ã´¦Àí
-//Èç¹ûÒÑ¾­ÓĞÏàÍ¬±íÃûµÄ±í´æÔÚ£¬ÔòÅ×³ötable_existÒì³£
+//è¾“å…¥ï¼šTableç±»å‹å¯¹è±¡
+//è¾“å‡ºï¼šæ˜¯å¦åˆ›å»ºæˆåŠŸ
+//åŠŸèƒ½ï¼šåœ¨æ•°æ®åº“ä¸­æ’å…¥ä¸€ä¸ªè¡¨çš„å…ƒä¿¡æ¯
+//å¼‚å¸¸ï¼šç”±åº•å±‚å¤„ç†
+//å¦‚æœå·²ç»æœ‰ç›¸åŒè¡¨åçš„è¡¨å­˜åœ¨ï¼Œåˆ™æŠ›å‡ºtable_existå¼‚å¸¸
 bool API::createTable(std::string table_name, Attribute attribute, int primary, Index index)
 {
 	record.createTableFile(table_name);
@@ -76,11 +76,11 @@ bool API::createTable(std::string table_name, Attribute attribute, int primary, 
 
 	return true;
 }
-//ÊäÈë£º±íÃû
-//Êä³ö£ºÊÇ·ñÉ¾³ı³É¹¦
-//¹¦ÄÜ£ºÔÚÊı¾İ¿âÖĞÉ¾³ıÒ»¸ö±íµÄÔªĞÅÏ¢£¬¼°±íÄÚËùÓĞ¼ÇÂ¼(É¾³ı±íÎÄ¼ş)
-//Òì³££ºÓÉµ×²ã´¦Àí
-//Èç¹û±í²»´æÔÚ£¬Å×³ötable_not_existÒì³£
+//è¾“å…¥ï¼šè¡¨å
+//è¾“å‡ºï¼šæ˜¯å¦åˆ é™¤æˆåŠŸ
+//åŠŸèƒ½ï¼šåœ¨æ•°æ®åº“ä¸­åˆ é™¤ä¸€ä¸ªè¡¨çš„å…ƒä¿¡æ¯ï¼ŒåŠè¡¨å†…æ‰€æœ‰è®°å½•(åˆ é™¤è¡¨æ–‡ä»¶)
+//å¼‚å¸¸ï¼šç”±åº•å±‚å¤„ç†
+//å¦‚æœè¡¨ä¸å­˜åœ¨ï¼ŒæŠ›å‡ºtable_not_existå¼‚å¸¸
 bool API::dropTable(std::string table_name)
 {
 	record.dropTableFile(table_name);
@@ -88,13 +88,13 @@ bool API::dropTable(std::string table_name)
 
 	return true;
 }
-//ÊäÈë£º±íÃû£¬Ë÷ÒıÃû£¬ÊôĞÔÃû
-//Êä³ö£ºÊÇ·ñ´´½¨³É¹¦
-//¹¦ÄÜ£ºÔÚÊı¾İ¿âÖĞ¸üĞÂ¶ÔÓ¦±íµÄË÷ÒıĞÅÏ¢£¨ÔÚÖ¸¶¨ÊôĞÔÉÏ½¨Á¢Ò»¸öË÷Òı£©
-//Òì³££ºÓÉµ×²ã´¦Àí
-//Èç¹û±í²»´æÔÚ£¬Å×³ötable_not_existÒì³£
-//Èç¹û¶ÔÓ¦ÊôĞÔ²»´æÔÚ£¬Å×³öattribute_not_existÒì³£
-//Èç¹û¶ÔÓ¦ÊôĞÔÒÑ¾­ÓĞÁËË÷Òı£¬Å×³öindex_existÒì³£
+//è¾“å…¥ï¼šè¡¨åï¼Œç´¢å¼•åï¼Œå±æ€§å
+//è¾“å‡ºï¼šæ˜¯å¦åˆ›å»ºæˆåŠŸ
+//åŠŸèƒ½ï¼šåœ¨æ•°æ®åº“ä¸­æ›´æ–°å¯¹åº”è¡¨çš„ç´¢å¼•ä¿¡æ¯ï¼ˆåœ¨æŒ‡å®šå±æ€§ä¸Šå»ºç«‹ä¸€ä¸ªç´¢å¼•ï¼‰
+//å¼‚å¸¸ï¼šç”±åº•å±‚å¤„ç†
+//å¦‚æœè¡¨ä¸å­˜åœ¨ï¼ŒæŠ›å‡ºtable_not_existå¼‚å¸¸
+//å¦‚æœå¯¹åº”å±æ€§ä¸å­˜åœ¨ï¼ŒæŠ›å‡ºattribute_not_existå¼‚å¸¸
+//å¦‚æœå¯¹åº”å±æ€§å·²ç»æœ‰äº†ç´¢å¼•ï¼ŒæŠ›å‡ºindex_existå¼‚å¸¸
 bool API::createIndex(std::string table_name, std::string index_name, std::string attr_name)
 {
 	IndexManager index(table_name);
@@ -115,13 +115,13 @@ bool API::createIndex(std::string table_name, std::string index_name, std::strin
 
 	return true;
 }
-//ÊäÈë£º±íÃû£¬Ë÷ÒıÃû
-//Êä³ö£ºÊÇ·ñÉ¾³ı³É¹¦
-//¹¦ÄÜ£ºÉ¾³ı¶ÔÓ¦±íµÄ¶ÔÓ¦ÊôĞÔÉÏµÄË÷Òı
-//Òì³££ºÓÉµ×²ã´¦Àí
-//Èç¹û±í²»´æÔÚ£¬Å×³ötable_not_existÒì³£
-//Èç¹û¶ÔÓ¦ÊôĞÔ²»´æÔÚ£¬Å×³öattribute_not_existÒì³£
-//Èç¹û¶ÔÓ¦ÊôĞÔÃ»ÓĞË÷Òı£¬Å×³öindex_not_existÒì³£
+//è¾“å…¥ï¼šè¡¨åï¼Œç´¢å¼•å
+//è¾“å‡ºï¼šæ˜¯å¦åˆ é™¤æˆåŠŸ
+//åŠŸèƒ½ï¼šåˆ é™¤å¯¹åº”è¡¨çš„å¯¹åº”å±æ€§ä¸Šçš„ç´¢å¼•
+//å¼‚å¸¸ï¼šç”±åº•å±‚å¤„ç†
+//å¦‚æœè¡¨ä¸å­˜åœ¨ï¼ŒæŠ›å‡ºtable_not_existå¼‚å¸¸
+//å¦‚æœå¯¹åº”å±æ€§ä¸å­˜åœ¨ï¼ŒæŠ›å‡ºattribute_not_existå¼‚å¸¸
+//å¦‚æœå¯¹åº”å±æ€§æ²¡æœ‰ç´¢å¼•ï¼ŒæŠ›å‡ºindex_not_existå¼‚å¸¸
 bool API::dropIndex(std::string table_name, std::string index_name)
 {
 	IndexManager index(table_name);
@@ -145,7 +145,7 @@ bool API::dropIndex(std::string table_name, std::string index_name)
 	return true;
 }
 
-//Ë½ÓĞº¯Êı£¬ÓÃÓÚ¶àÌõ¼ş²éÑ¯Ê±µÄorÌõ¼şºÏ²¢
+//ç§æœ‰å‡½æ•°ï¼Œç”¨äºå¤šæ¡ä»¶æŸ¥è¯¢æ—¶çš„oræ¡ä»¶åˆå¹¶
 Table API::unionTable(Table &table1, Table &table2, std::string target_attr, Where where)
 {
 	Table result_table(table1);
@@ -215,7 +215,7 @@ Table API::unionTable(Table &table1, Table &table2, std::string target_attr, Whe
 //    }
 }
 
-//Ë½ÓĞº¯Êı£¬ÓÃÓÚ¶àÌõ¼ş²éÑ¯Ê±µÄandÌõ¼şºÏ²¢
+//ç§æœ‰å‡½æ•°ï¼Œç”¨äºå¤šæ¡ä»¶æŸ¥è¯¢æ—¶çš„andæ¡ä»¶åˆå¹¶
 Table API::joinTable(Table &table1, Table &table2, std::string target_attr, Where where)
 {
 	Table result_table(table1);
@@ -244,7 +244,7 @@ Table API::joinTable(Table &table1, Table &table2, std::string target_attr, Wher
 		//return result_table;
 }
 
-//ÓÃÓÚ¶ÔvectorµÄsortÊ±ÅÅĞò
+//ç”¨äºå¯¹vectorçš„sortæ—¶æ’åº
 bool sortcmp(const Tuple &tuple1, const Tuple &tuple2)
 {
 	std::vector<Data> data1 = tuple1.getData();
@@ -257,7 +257,7 @@ bool sortcmp(const Tuple &tuple1, const Tuple &tuple2)
 	}
 }
 
-//ÓÃÓÚ¶Ôvector¶ÔºÏ²¢Ê±ÅÅĞò
+//ç”¨äºå¯¹vectorå¯¹åˆå¹¶æ—¶æ’åº
 bool calcmp(const Tuple &tuple1, const Tuple &tuple2)
 {
 	int i;

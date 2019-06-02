@@ -1,9 +1,9 @@
-#include "buffer_manager.h"
-// PageÀàµÄÊµÏÖ
+ï»¿#include "buffer_manager.h"
+// Pageç±»çš„å®ç°
 Page::Page() {
 	initialize();
 }
-// ³õÊ¼»¯
+// åˆå§‹åŒ–
 void Page::initialize() {
 	file_name_ = "";
 	block_id_ = -1;
@@ -15,7 +15,7 @@ void Page::initialize() {
 		buffer_[i] = '\0';
 }
 
-// ÏÂÃæÊÇÒ»Ğ©´æÈ¡¿ØÖÆº¯Êı£¬½ÏÎª¼òµ¥¾Í²»×¸ÊöÁË
+// ä¸‹é¢æ˜¯ä¸€äº›å­˜å–æ§åˆ¶å‡½æ•°ï¼Œè¾ƒä¸ºç®€å•å°±ä¸èµ˜è¿°äº†
 inline void Page::setFileName(std::string file_name) {
 	file_name_ = file_name;
 }
@@ -68,8 +68,8 @@ inline char* Page::getBuffer() {
 	return buffer_;
 }
 
-// BufferManagerÀàµÄÊµÏÖ
-// ¹¹Ôìº¯Êı¾ùµ÷ÓÃÊµ¼Ê³õÊ¼»¯º¯ÊıÍê³É³õÊ¼»¯
+// BufferManagerç±»çš„å®ç°
+// æ„é€ å‡½æ•°å‡è°ƒç”¨å®é™…åˆå§‹åŒ–å‡½æ•°å®Œæˆåˆå§‹åŒ–
 BufferManager::BufferManager() {
 	initialize(MAXFRAMESIZE);
 }
@@ -78,7 +78,7 @@ BufferManager::BufferManager(int frame_size) {
 	initialize(frame_size);
 }
 
-// Îö¹¹º¯Êı·Ç³£ÖØÒª¡£ÔÚ³ÌĞò½áÊøÊ±ĞèÒª½«»º³å³ØÀïµÄËùÓĞÒ³Ğ´»Ø´ÅÅÌ¡£
+// ææ„å‡½æ•°éå¸¸é‡è¦ã€‚åœ¨ç¨‹åºç»“æŸæ—¶éœ€è¦å°†ç¼“å†²æ± é‡Œçš„æ‰€æœ‰é¡µå†™å›ç£ç›˜ã€‚
 BufferManager::~BufferManager() {
 	for (int i = 0; i < frame_size_; i++) {
 		std::string file_name;
@@ -89,14 +89,14 @@ BufferManager::~BufferManager() {
 	}
 }
 
-// Êµ¼Ê³õÊ¼»¯º¯Êı
+// å®é™…åˆå§‹åŒ–å‡½æ•°
 void BufferManager::initialize(int frame_size) {
-	Frames = new Page[frame_size];//ÔÚ¶ÑÉÏ·ÖÅäÄÚ´æ
+	Frames = new Page[frame_size];//åœ¨å †ä¸Šåˆ†é…å†…å­˜
 	frame_size_ = frame_size;
 	current_position_ = 0;
 }
 
-// ÏÂÃæ¼¸¸öº¯Êı½ÏÎª¼òµ¥£¬Ò²²»×¸ÊöÁË
+// ä¸‹é¢å‡ ä¸ªå‡½æ•°è¾ƒä¸ºç®€å•ï¼Œä¹Ÿä¸èµ˜è¿°äº†
 char* BufferManager::getPage(std::string file_name, int block_id) {
 	int page_id = getPageId(file_name, block_id);
 	if (page_id == -1) {
@@ -125,24 +125,24 @@ int BufferManager::unpinPage(int page_id) {
 	return 0;
 }
 
-// ºËĞÄº¯ÊıÖ®Ò»¡£ÄÚ´æºÍ´ÅÅÌ½»»¥µÄ½Ó¿Ú¡£
+// æ ¸å¿ƒå‡½æ•°ä¹‹ä¸€ã€‚å†…å­˜å’Œç£ç›˜äº¤äº’çš„æ¥å£ã€‚
 int BufferManager::loadDiskBlock(int page_id, std::string file_name, int block_id) {
-	// ³õÊ¼»¯Ò»¸öÒ³
+	// åˆå§‹åŒ–ä¸€ä¸ªé¡µ
 	Frames[page_id].initialize();
-	// ´ò¿ª´ÅÅÌÎÄ¼ş
+	// æ‰“å¼€ç£ç›˜æ–‡ä»¶
 	FILE* f = fopen(file_name.c_str(), "r");
-	// ´ò¿ªÊ§°Ü·µ»Ø-1
+	// æ‰“å¼€å¤±è´¥è¿”å›-1
 	if (f == NULL)
 		return -1;
-	// ½«ÎÄ¼şÖ¸Õë¶¨Î»µ½¶ÔÓ¦Î»ÖÃ
+	// å°†æ–‡ä»¶æŒ‡é’ˆå®šä½åˆ°å¯¹åº”ä½ç½®
 	fseek(f, PAGESIZE * block_id, SEEK_SET);
-	// »ñÈ¡Ò³µÄ¾ä±ú
+	// è·å–é¡µçš„å¥æŸ„
 	char* buffer = Frames[page_id].getBuffer();
-	// ¶ÁÈ¡¶ÔÓ¦´ÅÅÌ¿éµ½ÄÚ´æÒ³
+	// è¯»å–å¯¹åº”ç£ç›˜å—åˆ°å†…å­˜é¡µ
 	fread(buffer, PAGESIZE, 1, f);
-	// ¹Ø±ÕÎÄ¼ş
+	// å…³é—­æ–‡ä»¶
 	fclose(f);
-	// ¶ÔĞÂÔØÈëµÄÒ³½øĞĞÏàÓ¦ÉèÖÃ
+	// å¯¹æ–°è½½å…¥çš„é¡µè¿›è¡Œç›¸åº”è®¾ç½®
 	Frames[page_id].setFileName(file_name);
 	Frames[page_id].setBlockId(block_id);
 	Frames[page_id].setPinCount(1);
@@ -152,25 +152,25 @@ int BufferManager::loadDiskBlock(int page_id, std::string file_name, int block_i
 	return 0;
 }
 
-// ºËĞÄº¯ÊıÖ®Ò»¡£ÄÚ´æºÍ´ÅÅÌ½»»¥µÄ½Ó¿Ú¡£
+// æ ¸å¿ƒå‡½æ•°ä¹‹ä¸€ã€‚å†…å­˜å’Œç£ç›˜äº¤äº’çš„æ¥å£ã€‚
 int BufferManager::flushPage(int page_id, std::string file_name, int block_id) {
-	// ´ò¿ªÎÄ¼ş
+	// æ‰“å¼€æ–‡ä»¶
 	FILE* f = fopen(file_name.c_str(), "r+");
-	// ÆäÊµÕâÀïÓĞĞ´¶àÓà£¬ÒòÎª´ò¿ªÒ»¸öÎÄ¼ş¶Á×ÜÊÇÄÜ³É¹¦¡£
+	// å…¶å®è¿™é‡Œæœ‰å†™å¤šä½™ï¼Œå› ä¸ºæ‰“å¼€ä¸€ä¸ªæ–‡ä»¶è¯»æ€»æ˜¯èƒ½æˆåŠŸã€‚
 	if (f == NULL)
 		return -1;
-	// ½«ÎÄ¼şÖ¸Õë¶¨Î»µ½¶ÔÓ¦Î»ÖÃ
+	// å°†æ–‡ä»¶æŒ‡é’ˆå®šä½åˆ°å¯¹åº”ä½ç½®
 	fseek(f, PAGESIZE * block_id, SEEK_SET);
-	// »ñÈ¡Ò³µÄ¾ä±ú
+	// è·å–é¡µçš„å¥æŸ„
 	char* buffer = Frames[page_id].getBuffer();
-	// ½«ÄÚ´æÒ³µÄÄÚÈİĞ´Èë´ÅÅÌ¿é
+	// å°†å†…å­˜é¡µçš„å†…å®¹å†™å…¥ç£ç›˜å—
 	fwrite(buffer, PAGESIZE, 1, f);
-	// ¹Ø±ÕÎÄ¼ş
+	// å…³é—­æ–‡ä»¶
 	fclose(f);
 	return 0;
 }
 
-// ¼òµ¥±éÀú»ñÈ¡Ò³ºÅ
+// ç®€å•éå†è·å–é¡µå·
 int BufferManager::getPageId(std::string file_name, int block_id) {
 	for (int i = 0; i < frame_size_; i++) {
 		std::string tmp_file_name = Frames[i].getFileName();
@@ -181,36 +181,36 @@ int BufferManager::getPageId(std::string file_name, int block_id) {
 	return -1;
 }
 
-// Ñ°ÕÒÒ»¸öÏĞÖÃµÄÒ³
+// å¯»æ‰¾ä¸€ä¸ªé—²ç½®çš„é¡µ
 int BufferManager::getEmptyPageId() {
-	// ÏÈ¼òµ¥µÄ±éÀúÒ»±é£¬Èç¹ûÓĞÏĞÖÃµÄÖ±½Ó·µ»ØÆäÒ³ºÅ
+	// å…ˆç®€å•çš„éå†ä¸€éï¼Œå¦‚æœæœ‰é—²ç½®çš„ç›´æ¥è¿”å›å…¶é¡µå·
 	for (int i = 0; i < frame_size_; i++) {
 		if (Frames[i].getAvaliable() == true)
 			return i;
 	}
-	// Èç¹ûËùÓĞÒ³¶¼ÒÑ¾­±»Ê¹ÓÃ£¬ÄÇÃ´ĞèÒªÕÒµ½Ò»¸öÒ³£¬½«ÆäÉ¾³ıµô¡£
-	// ÕâÀïĞèÒªÊ¹ÓÃÒ»Ğ©²ßÂÔÀ´Ñ¡ÔñÄÄÒ»¸öÒ³Ó¦¸Ã±»É¾³ı¡£
-	// ±¾³ÌĞòÖĞ²ÉÓÃÊ±ÖÓÌæ»»²ßÂÔ¡£
+	// å¦‚æœæ‰€æœ‰é¡µéƒ½å·²ç»è¢«ä½¿ç”¨ï¼Œé‚£ä¹ˆéœ€è¦æ‰¾åˆ°ä¸€ä¸ªé¡µï¼Œå°†å…¶åˆ é™¤æ‰ã€‚
+	// è¿™é‡Œéœ€è¦ä½¿ç”¨ä¸€äº›ç­–ç•¥æ¥é€‰æ‹©å“ªä¸€ä¸ªé¡µåº”è¯¥è¢«åˆ é™¤ã€‚
+	// æœ¬ç¨‹åºä¸­é‡‡ç”¨æ—¶é’Ÿæ›¿æ¢ç­–ç•¥ã€‚
 	while (1) {
-		// Èç¹ûÒ³µÄrefÎªtrue£¬½«ÆäÉèÎªfalse
+		// å¦‚æœé¡µçš„refä¸ºtrueï¼Œå°†å…¶è®¾ä¸ºfalse
 		if (Frames[current_position_].getRef() == true) {
 			Frames[current_position_].setRef(false);
 		}
-		// ·ñÔò£¬Èç¹ûÒ³¶ÔÓ¦µÄpin_countÎª0£¬¼´Ò³Ã»ÓĞ±»Ëø×¡£¬ÄÇÃ´ÕâÒ»Ò³¾Í
-		// »á±»É¾³ı¡£
+		// å¦åˆ™ï¼Œå¦‚æœé¡µå¯¹åº”çš„pin_countä¸º0ï¼Œå³é¡µæ²¡æœ‰è¢«é”ä½ï¼Œé‚£ä¹ˆè¿™ä¸€é¡µå°±
+		// ä¼šè¢«åˆ é™¤ã€‚
 		else if (Frames[current_position_].getPinCount() == 0) {
-			// Èç¹ûÕâÒ»Ò³±»¸Ä¶¯¹ı£¬ĞèÒª½«ÆäĞ´»Ø´ÅÅÌ£¬È»ºóÉ¾³ı
+			// å¦‚æœè¿™ä¸€é¡µè¢«æ”¹åŠ¨è¿‡ï¼Œéœ€è¦å°†å…¶å†™å›ç£ç›˜ï¼Œç„¶ååˆ é™¤
 			if (Frames[current_position_].getDirty() == true) {
 				std::string file_name = Frames[current_position_].getFileName();
 				int block_id = Frames[current_position_].getBlockId();
 				flushPage(current_position_, file_name, block_id);
 			}
-			// É¾³ıÒ³
+			// åˆ é™¤é¡µ
 			Frames[current_position_].initialize();
-			// ·µ»ØÒ³ºÅ
+			// è¿”å›é¡µå·
 			return current_position_;
 		}
-		// Ê±ÖÓÖ¸ÕëË³Ê±Õë×ª¶¯
+		// æ—¶é’ŸæŒ‡é’ˆé¡ºæ—¶é’ˆè½¬åŠ¨
 		current_position_ = (current_position_ + 1) % frame_size_;
 	}
 }
