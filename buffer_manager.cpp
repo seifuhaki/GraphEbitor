@@ -7,7 +7,6 @@ Page::Page() {
 void Page::initialize() {
 	file_name_ = "";
 	block_id_ = -1;
-	pin_count_ = -1;
 	dirty_ = false;
 	ref_ = false;
 	avaliable_ = true;
@@ -30,14 +29,6 @@ inline void Page::setBlockId(int block_id) {
 
 inline int Page::getBlockId() {
 	return block_id_;
-}
-
-inline void Page::setPinCount(int pin_count) {
-	pin_count_ = pin_count;
-}
-
-inline int Page::getPinCount() {
-	return pin_count_;
 }
 
 inline void Page::setDirty(bool dirty) {
@@ -111,20 +102,6 @@ void BufferManager::modifyPage(int page_id) {
 	Frames[page_id].setDirty(true);
 }
 
-void BufferManager::pinPage(int page_id) {
-	int pin_count = Frames[page_id].getPinCount();
-	Frames[page_id].setPinCount(pin_count + 1);
-}
-
-int BufferManager::unpinPage(int page_id) {
-	int pin_count = Frames[page_id].getPinCount();
-	if (pin_count <= 0)
-		return -1;
-	else
-		Frames[page_id].setPinCount(pin_count - 1);
-	return 0;
-}
-
 // 核心函数之一。内存和磁盘交互的接口。
 int BufferManager::loadDiskBlock(int page_id, std::string file_name, int block_id) {
 	// 初始化一个页
@@ -145,7 +122,6 @@ int BufferManager::loadDiskBlock(int page_id, std::string file_name, int block_i
 	// 对新载入的页进行相应设置
 	Frames[page_id].setFileName(file_name);
 	Frames[page_id].setBlockId(block_id);
-	Frames[page_id].setPinCount(1);
 	Frames[page_id].setDirty(false);
 	Frames[page_id].setRef(true);
 	Frames[page_id].setAvaliable(false);
@@ -196,9 +172,7 @@ int BufferManager::getEmptyPageId() {
 		if (Frames[current_position_].getRef() == true) {
 			Frames[current_position_].setRef(false);
 		}
-		// 否则，如果页对应的pin_count为0，即页没有被锁住，那么这一页就
-		// 会被删除。
-		else if (Frames[current_position_].getPinCount() == 0) {
+		else{
 			// 如果这一页被改动过，需要将其写回磁盘，然后删除
 			if (Frames[current_position_].getDirty() == true) {
 				std::string file_name = Frames[current_position_].getFileName();
