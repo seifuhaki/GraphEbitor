@@ -13,8 +13,6 @@ void Page::initialize() {
 	for (int i = 0; i < PAGESIZE; i++)
 		buffer_[i] = '\0';
 }
-
-// 下面是一些存取控制函数，较为简单就不赘述了
 inline void Page::setFileName(std::string file_name) {
 	file_name_ = file_name;
 }
@@ -87,7 +85,7 @@ void BufferManager::initialize(int frame_size) {
 	current_position_ = 0;
 }
 
-// 下面几个函数较为简单，也不赘述了
+// 获取页的句柄
 char* BufferManager::getPage(std::string file_name, int block_id) {
 	int page_id = getPageId(file_name, block_id);
 	if (page_id == -1) {
@@ -157,7 +155,7 @@ int BufferManager::getPageId(std::string file_name, int block_id) {
 	return -1;
 }
 
-// 寻找一个闲置的页
+// 寻找一个闲置的页（内置时钟替换策略）
 int BufferManager::getEmptyPageId() {
 	// 先简单的遍历一遍，如果有闲置的直接返回其页号
 	for (int i = 0; i < frame_size_; i++) {

@@ -1,4 +1,12 @@
-﻿#ifndef _BUFFER_MANAGER_H_
+﻿// 如何使用?
+// 首先实例化一个BufferManager类，通过getPageId接口
+// 获取块在内存中的页号。然后通过getPage接口得到对应文件的对应块
+// 在内存中的句柄，调用getPage得到句柄之后即可读取或修改页的内容。
+// 需要注意的是，如果修改了对应页的内容，需要调用
+// modifyPage接口来标记该页已经被修改，否则可能修改会丢失。
+
+// 总结:getPageId获得页号，调用getPage修改页，modifyPage记录修改 
+#ifndef _BUFFER_MANAGER_H_
 #define _BUFFER_MANAGER_H_ 1
 
 #include <cstdio>
@@ -11,7 +19,6 @@
 // Page类。磁盘文件中的每一块对应内存中的一个页（page)
 class Page {
 public:
-	// 构造函数和一些存取控制函数。可忽略。
 	Page();
 	void initialize();
 	void setFileName(std::string file_name);
@@ -37,16 +44,14 @@ private:
 // BufferManager类。对外提供操作缓冲区的接口。
 class BufferManager {
 public:
-	//  构造函数
 	BufferManager();
 	BufferManager(int frame_size);
-	// 析构函数
 	~BufferManager();
 	// 通过页号得到页的句柄(一个页的头地址)
 	char* getPage(std::string file_name, int block_id);
 	// 标记page_id所对应的页已经被修改
 	void modifyPage(int page_id);
-	// 钉住一个页
+	// 将页写回文件
 	int flushPage(int page_id, std::string file_name, int block_id);
 	// 获取对应文件的对应块在内存中的页号，没有找到返回-1
 	int getPageId(std::string file_name, int block_id);
@@ -62,11 +67,3 @@ private:
 };
 
 #endif
-
-// 如何使用?
-// 首先实例化一个BufferManager类，然后通过getPage接口得到对应文件的对应块
-// 在内存中的句柄，调用getPage得到句柄之后即可读取或修改页的内容。之后通过getPageId接口
-// 获取块在内存中的页号。需要注意的是，如果修改了对应页的内容，需要调用
-// modifyPage接口来标记该页已经被修改，否则可能修改会丢失。
-
-// 总结:调用getPage修改页，getPageId获得页号，modifyPage记录修改 
