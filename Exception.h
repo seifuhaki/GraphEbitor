@@ -15,4 +15,44 @@ class cannotOpenFile : public std::exception {
 
 };
 
+class tableExists : public std::exception {
+
+};
+
+class tableNotExists : public std::exception {
+
+};
+
+class attributeNotExists : public std::exception {
+
+};
+
+class duplicateIndexOnAttribute : public std::exception {
+
+};
+
+class duplicateIndexName : public std::exception {
+
+};
+
+class nameTooLong : public std::exception {
+
+};
+
+class negativeNum : public std::exception {
+
+};
+
+class tooManyIndex : public std::exception {
+
+};
+
+class indexNotExist : public std::exception {
+
+};
+
+class illegalIdentifier : public std::exception {
+
+};
+
 #endif
