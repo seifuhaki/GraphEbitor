@@ -431,13 +431,11 @@ bool CatalogManager::isUnique(const std::string tableName, const std::string att
 	return false;
 }
 
-IndexInfo CatalogManager::getIndexInfo(const std::string indexName) {
-	if (!hasIndex(indexName)) {
-		throw indexNotExist();
-	}
-	IndexInfo result;
+std::vector<IndexInfo> CatalogManager::getIndexInfo() {
+
+	std::vector<IndexInfo> results;
+	results.clear();
 	int blockNum = getBlockNum(IndexInfoPath);
-	std::string temp = addStr(indexName, 32);
 	for (int i = 0; i < blockNum; i++) {
 		char * buf = bm.getPage(IndexInfoPath, i);
 		std::string check(buf);
@@ -445,7 +443,8 @@ IndexInfo CatalogManager::getIndexInfo(const std::string indexName) {
 			if (check.size() < 96 * (j + 1)) {
 				continue;
 			}
-			if (temp == check.substr(96 * j + 64, 32)) {
+			if (check.substr(96 * j, 1) != "#") {
+				IndexInfo newIndex;
 				std::string tn = check.substr(96 * j, 32);
 				std::string an = check.substr(96 * j + 32, 32);
 				std::string in = check.substr(96 * j + 64, 32);
@@ -454,14 +453,18 @@ IndexInfo CatalogManager::getIndexInfo(const std::string indexName) {
 				removeChara(an, '#');
 				removeChara(in, '#');
 
-				result.attributeName = an;
-				result.indexName = in;
-				result.tableName = tn;
+				newIndex.attributeName = an;;
+				newIndex.indexName = in;
+				newIndex.tableName = tn;
+				newIndex.types = getType(tn, an);
+
+				results.push_back(newIndex);
 			}
 		}
 	}
-	return result;
+	return results;
 }
+
 TableInfo CatalogManager::getTableInfo(const std::string tableName) {
 	if (!hasTable(tableName)) {
 		throw tableNotExists();
@@ -507,7 +510,35 @@ TableInfo CatalogManager::getTableInfo(const std::string tableName) {
 	return result;
 }
 
+std::string CatalogManager::getType(const std::string tableName, const std::string attributeName) {
 
+	std::string type;
+	int blockNum = getBlockNum(TableInfoPath);
+	std::string temp = addStr(tableName, 32);
+
+	for (int i = 0; i < blockNum; i++) {
+		char * buf = bm.getPage(TableInfoPath, i);
+		std::string check(buf);
+		for (std::size_t j = 0; j < 3; j++) {
+			if (check.size() < 1024 * (j + 1)) {
+				continue;
+			}
+			if (temp == check.substr(1024 * j, 32)) {
+				std::string n = check.substr(1024 * j + 32, 2);
+				removeChara(n, '#');
+				int attributeNum = atoi(n.c_str());
+				std::string t = addStr(attributeName, 32);
+				for (int k = 0; k < attributeNum; k++) {
+					if (check.substr(1024 * j + 34 + k * 40 + 7, 32) == t) {
+						type = check.substr(1024 * j + 34 + k * 40, 7);
+						removeChara(type, '#');
+					}
+				}
+			}
+		}
+	}
+	return type;
+}
 
 
 
