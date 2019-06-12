@@ -44,7 +44,7 @@ public:
 	//功能：删除对应表中所有目标属性值满足Where条件的记录
 	//异常：如果表不存在，抛出table_not_exist异常。如果属性不存在，抛出attribute_not_exist异常。
 	//如果Where条件中的两个数据类型不匹配，抛出data_type_conflict异常。
-	int deleteRecord(std::string tableName, std::string AttributeName, Where where);
+	int deleteRecord(std::string tableName, std::string AttributeName,std::string target_attr, Where where);
 	//输入：表名
 	//输出：Table类型对象
 	//功能：返回整张表

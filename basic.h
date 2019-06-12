@@ -3,11 +3,23 @@
 #include <iostream>
 #include <vector>
 #include <string>
+typedef enum {
+	LESS,
+	LESS_OR_EQUAL,
+	EQUAL,
+	GREATER_OR_EQUAL,
+	GREATER,
+	NOT_EQUAL
+} WHERE;
 struct data {
 	std::string type;
 	int datai;
 	float dataf;
 	std::string datas;
+};
+struct Where {
+	data data; //数据
+	WHERE relation_character;   //关系
 };
 class IndexInfo {
 public:

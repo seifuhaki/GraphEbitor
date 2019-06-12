@@ -4,8 +4,8 @@
 #include "api.h"
 
 //构造函数
-API::API() {}
-
+API::API() {
+}
 //析构函数
 API::~API() {}
 
@@ -62,7 +62,8 @@ int API::deleteRecord(std::string table_name, std::string target_attr, Where whe
 void API::insertRecord(std::string table_name, Tuple& tuple)
 {
 	record.insertRecord(table_name, tuple);
-	return;
+
+	insertindex
 }
 //输入：Table类型对象
 //输出：是否创建成功

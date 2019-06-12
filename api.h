@@ -77,6 +77,7 @@ private:
 private:
 	RecordManager record;
 	CatalogManager catalog;
+	IndexManager im;
 };
 
 //用于对vector的sort时排序

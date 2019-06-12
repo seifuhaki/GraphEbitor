@@ -81,18 +81,6 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple)
 		int pageId = bm.getPageId(tableName, blockNum);
 		bm.modifyPage(pageId);
 	}
-	//更新索引
-	for (int i = 0; i < attr.attributeNames.size(); i++) {
-		if (attr.has_index[i] == true) {
-			IndexManager im(tmpName, attr.attributeNames[i], attr.types[i]);
-			std::string attr_name = attr.attributeNames[i];
-			std::string file_path = "INDEX_FILE_" + attr_name + "_" + tmp_name;
-			std::vector<data> d = tuple.getData();
-			
-			index_manager.insertIndex(file_path, d[i], block_offset);
-		}
-	}
-
 }
 
 int RecordManager::deleteRecord(std::string tableName)
@@ -109,16 +97,13 @@ int RecordManager::deleteRecord(std::string tableName)
 	//表文件大小为0时直接返回
 	if(blockNum <= 0)
 		return 0;
-	//getAttribute
-	//Indexmanager
+	TableInfo attr = cm.getTableInfo(tmpName);
 	int count = 0;
 	//遍历所有块
 	for (int i = 0; i < blockNum; i++) {
 		char *p = bm.getPage(tableName,i);
 		char *t = p;
 		while (*p != '\0'&&p < t + PAGESIZE) {
-			//更新索引
-
 			//删除记录
 			p = deleteRecord1(p);
 			count++;
@@ -129,7 +114,7 @@ int RecordManager::deleteRecord(std::string tableName)
 	return count;
 }
 
-int RecordManager::deleteRecord(std::string tableName, std::string AttributeName, Where where) 
+int RecordManager::deleteRecord(std::string tableName, std::string AttributeName, std::string target_attr,Where where)
 {
 	std::string tmpName = tableName;
 	tableName = tableName + ".txt";
@@ -137,19 +122,38 @@ int RecordManager::deleteRecord(std::string tableName, std::string AttributeName
 	if (!cm.hasTable(tmpName)) {
 		throw tableNotExists();
 	}
-	//getAttribute
+	TableInfo attr = cm.getTableInfo(tmpName);
 	int index = -1;
 	bool flag = false;//判断是否存在索引
-
+	for (int i = 0; i < attr.attributeNames.size(); i++) {
+		if (attr.attributeNames[i] == target_attr) {
+			index = i;
+			if (attr.has_index[i] == true)
+				flag = true;
+			break;
+		}
+	}
+	if (index == -1) {
+		throw attributeNotExists();
+	}
+	else if (attr.types[index] != where.data.type) {
+		throw dataTypeConflict();
+	}
 	int count = 0;
 	if (flag == true && where.relation_character != NOT_EQUAL) {
 		//有索引，通过索引获得块号
+		std::vector<int> block_ids;
+		//通过索引获取满足条件的记录所在的块号
+		searchWithIndex(tmpName, target_attr, where, block_ids);
+		for (int i = 0; i < block_ids.size(); i++) {
+			count += conditionDeleteInBlock(tmpName, block_ids[i], attr, index, where);
+		}
 	}
 	else {
 		int blockNum = cm.getBlockNum(tableName);
 		if (blockNum <= 0)return 0;
 		for (int i = 0; i < blockNum; i++) {
-			//count +=conditionDeleteInBlock();
+			count += conditionDeleteInBlock(tmpName, i, attr, index, where);
 		}
 	}
 	return count;

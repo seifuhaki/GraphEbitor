@@ -70,4 +70,8 @@ class tupleTypeConflict : public std::exception {
 class uniqueConflict : public std::exception {
 
 };
+
+class dataTypeConflict : public std::exception {
+
+};
 #endif
