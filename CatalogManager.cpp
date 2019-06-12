@@ -29,22 +29,22 @@ void CatalogManager::createTable(const std::string tableName, const std::vector<
 		}
 	}
 
-	// ÐèÒªÔÚAPIÖÐÏÈÅÐ¶ÏÖ÷¼ü´æÔÚÓÚËùÓÐ×Ö¶ÎÃûÖÐ
+	// éœ€è¦åœ¨APIä¸­å…ˆåˆ¤æ–­ä¸»é”®å­˜åœ¨äºŽæ‰€æœ‰å­—æ®µåä¸­
 	for (std::size_t i = 0; i < attributeNames.size(); i++) {
 		if (attributeNames[i] == primaryKey) {
 			info += num2str(i, 2);
 		}
 	}
 
-	// Ã»ÓÐË÷Òý
+	// æ²¡æœ‰ç´¢å¼•
 	info += "0";
-	// Ë÷Òý³õÊ¼È«ÓÃ"#"Ìî³ä
+	// ç´¢å¼•åˆå§‹å…¨ç”¨"#"å¡«å……
 	for (int i = 1; i < 7 * 34; i++) {
 		info += "#";
 	}
 
-	// ¿ÕÓà²¿·ÖÒ²ÓÃ"#"Ìî³ä
-	for (std::string::size_type i = info.length(); i < 1023; i++) {
+	// ç©ºä½™éƒ¨åˆ†ä¹Ÿç”¨"#"å¡«å……
+	for (std::string::size_type i = info.length(); i < 1024; i++) {
 		info += "#";
 	}
 
@@ -56,9 +56,9 @@ void CatalogManager::createTable(const std::string tableName, const std::vector<
 	for (int i = 0; i < blockNum; i++) {
 		char * buf = bm.getPage(TableInfoPath, i);
 		int pageId = bm.getPageId(TableInfoPath, i);
-		for (int j = 0; j < 4; j++) {
+		for (int j = 0; j < 3; j++) {
 			if (buf[j*1024] == '#' || buf[j*1024] == '\0' || buf[j*1024] == ' ') {
-				strcpy_s(buf+1024*j, 1024, info.c_str());
+				strncpy_s(buf+1024*j, PAGESIZE-1024*j, info.c_str(), 1024);
 				bm.modifyPage(pageId);
 				return;
 			}
@@ -66,7 +66,7 @@ void CatalogManager::createTable(const std::string tableName, const std::vector<
 	}
 	char* buf = bm.getPage(TableInfoPath, blockNum);
 	int pageId = bm.getPageId(TableInfoPath, blockNum);
-	strcpy_s(buf, 1024, info.c_str());
+	strncpy_s(buf, 4096, info.c_str(), 1024);
 	bm.modifyPage(pageId);
 	
 }
@@ -79,12 +79,12 @@ bool CatalogManager::hasTable(const std::string tableName) {
 	std::string temp = addStr(tableName, 32);
 	for (int i = 0; i < blockNum; i++) {
 		char * buf = bm.getPage(TableInfoPath, i);
-		for (std::size_t j = 0; j < 4; j++) {
-			std::string check(buf + j * 1024);
-			if (check.size() < 1023) {
+		std::string check(buf);
+		for (std::size_t j = 0; j < 3; j++) {
+			if (check.size() < 1024*(j+1)) {
 				continue;
 			}
-			if (temp == check.substr(0, 32)) {
+			if (temp == check.substr(1024*j, 32)) {
 				return true;
 			}
 		}
@@ -136,20 +136,20 @@ void CatalogManager::dropTable(const std::string tableName) {
 	std::string temp = addStr(tableName, 32);
 	int blockNum = getBlockNum(TableInfoPath);
 	
-	// Í¬Ê±ÒªÉ¾³ýindexInfoÖÐ¶ÔÓÃË÷Òý
+	// åŒæ—¶è¦åˆ é™¤indexInfoä¸­å¯¹ç”¨ç´¢å¼•
 	for (int i = 0; i < blockNum; i++) {
 		char * buf = bm.getPage(TableInfoPath, i);
-		for (std::size_t j = 0; j < 4; j++) {
-			std::string check(buf + j * 1024);
-			if (check.size() < 1023) {
+		std::string check(buf);
+		for (std::size_t j = 0; j < 3; j++) {
+			if (check.size() < 1024*(j+1)) {
 				continue;
 			}
-			if (temp == check.substr(0, 32)) {
+			if (temp == check.substr(1024 * j, 32)) {
 				buf[1024 * j] = '#';
-				std::string n = check.substr(676, 1);
+				std::string n = check.substr(1024 * j + 676, 1);
 				int indexNum = atoi(n.c_str());
 				for (int k = 0; k < indexNum; k++) {
-					std::string idName = check.substr(677 + 34 * k, 32);
+					std::string idName = check.substr(1024 * j + 677 + 34 * k, 32);
 					removeChara(idName, '#');
 					dropIndex(idName);
 				}
@@ -172,6 +172,9 @@ void CatalogManager::createIndex(const std::string tableName, const std::string 
 	if (!hasAttribute(tableName, attributeName)) {
 		throw attributeNotExists();
 	}
+	if (!isUnique(tableName, attributeName)) {
+		throw attributeNotUnique();
+	}
 	if (attributeHasIndex(tableName, attributeName, indexName)) {
 		throw duplicateIndexOnAttribute();
 	}
@@ -179,30 +182,30 @@ void CatalogManager::createIndex(const std::string tableName, const std::string 
 		throw duplicateIndexName();
 	}
 
-	// TableInfo¸ü¸Ä
+	// TableInfoæ›´æ”¹
 	int blockNum = getBlockNum(TableInfoPath);
 	std::string temp = addStr(tableName, 32);
 	std::string tempa = addStr(attributeName, 32);
 	for (int i = 0; i < blockNum; i++) {
 		char * buf = bm.getPage(TableInfoPath, i);
 		int pageId = bm.getPageId(TableInfoPath, i);
-		for (std::size_t j = 0; j < 4; j++) {
-			std::string check(buf + j * 1024);
-			if (check.size() < 1023) {
+		std::string check(buf);
+		for (std::size_t j = 0; j < 3; j++) {
+			if (check.size() < 1024*(j+1)) {
 				continue;
 			}
-			if (temp == check.substr(0, 32)) {
-				std::string t = check.substr(32, 2);
+			if (temp == check.substr(1024*j, 32)) {
+				std::string t = check.substr(1024 * j+32, 2);
 				removeChara(t, '#');
 				int attributeNum = atoi(t.c_str());
 				int id;
 				for (int k = 0; k < attributeNum; k++) {
-					if (check.substr(34 + k * 40 + 7, 32) == tempa) {
+					if (check.substr(1024 * j + 34 + k * 40 + 7, 32) == tempa) {
 						id = k;
 						break;
 					}
 				}
-				std::string n = check.substr(676, 1);
+				std::string n = check.substr(1024 * j + 676, 1);
 				int indexNum = atoi(n.c_str());
 				if (indexNum == maxIndexNum) {
 					throw tooManyIndex();
@@ -222,7 +225,7 @@ void CatalogManager::createIndex(const std::string tableName, const std::string 
 						}
 					}
 					
-					buf[j * 1024 + 676] += 1; // ÒòÎªÐ´µÄÊ±ºò×î´óÊÇ7£¬ËùÒÔÖ±½Ó¼Ó1£¬Èç¹ûµ÷Õû×î´óÖµÕâ±ßÒ²Òªµ÷Õû
+					buf[j * 1024 + 676] += 1; // å› ä¸ºå†™çš„æ—¶å€™æœ€å¤§æ˜¯7ï¼Œæ‰€ä»¥ç›´æŽ¥åŠ 1ï¼Œå¦‚æžœè°ƒæ•´æœ€å¤§å€¼è¿™è¾¹ä¹Ÿè¦è°ƒæ•´
 				}
 				bm.modifyPage(pageId);
 				break;
@@ -230,18 +233,18 @@ void CatalogManager::createIndex(const std::string tableName, const std::string 
 		}
 	}
 
-	// indexInfo¸ü¸Ä
+	// indexInfoæ›´æ”¹
 	blockNum = getBlockNum(IndexInfoPath);
 	for (int i = 0; i < blockNum; i++) {
 		char * buf = bm.getPage(IndexInfoPath, i);
 		int pageId = bm.getPageId(IndexInfoPath, i);
-		for (int j = 0; j < PAGESIZE / 97; j++) {
-			if (buf[j * 97] == '#' || buf[j * 97] == '\0' || buf[j * 97] == -1) {
+		for (int j = 0; j < PAGESIZE / 96 - 1; j++) {
+			if (buf[j * 96] == '#' || buf[j * 96] == '\0' || buf[j * 96] == -1) {
 				std::string info = "";
 				info += addStr(tableName, 32);
 				info += addStr(attributeName, 32);
 				info += addStr(indexName, 32);
-				strcpy_s(buf + 97 * j, 97, info.c_str());
+				strncpy_s(buf + 96 * j, PAGESIZE- 96 * j, info.c_str(), 96);
 				bm.modifyPage(pageId);
 				return;
 			}
@@ -254,7 +257,7 @@ void CatalogManager::createIndex(const std::string tableName, const std::string 
 	info += addStr(tableName, 32);
 	info += addStr(attributeName, 32);
 	info += addStr(indexName, 32);
-	strcpy_s(buf, 97, info.c_str());
+	strncpy_s(buf, PAGESIZE, info.c_str(), 96);
 	bm.modifyPage(pageId);
 
 }
@@ -265,18 +268,18 @@ bool CatalogManager::hasAttribute(const std::string tableName, const std::string
 
 	for (int i = 0; i < blockNum; i++) {
 		char * buf = bm.getPage(TableInfoPath, i);
-		for (std::size_t j = 0; j < 4; j++) {
-			std::string check(buf + j * 1024);
-			if (check.size() < 1023) {
+		std::string check(buf);
+		for (std::size_t j = 0; j < 3; j++) {
+			if (check.size() < 1024*(j+1)) {
 				continue;
 			}
-			if (temp == check.substr(0, 32)) {
-				std::string n = check.substr(32, 2);
+			if (temp == check.substr(1024*j, 32)) {
+				std::string n = check.substr(1024 * j + 32, 2);
 				removeChara(n, '#');
 				int attributeNum = atoi(n.c_str());
 				std::string t = addStr(attributeName, 32);
 				for (int k = 0; k < attributeNum; k++) {
-					if (check.substr(34 + k * 40 + 7, 32) == t) {
+					if (check.substr(1024 * j + 34 + k * 40 + 7, 32) == t) {
 						return true;
 					}
 				}
@@ -300,13 +303,13 @@ bool CatalogManager::attributeHasIndex(const std::string tableName, const std::s
 
 	for (int i = 0; i < blockNum; i++) {
 		char * buf = bm.getPage(IndexInfoPath, i);
-		for (std::size_t j = 0; j < PAGESIZE/97; j++) {
-			std::string check(buf + j * 97);
-			if (check.size() < 96) {
+		std::string check(buf);
+		for (std::size_t j = 0; j < PAGESIZE/96 - 1; j++) {
+			if (check.size() < 96*(j+1)) {
 				continue;
 			}
-			if (temp == check.substr(0, 32)) {
-				std::string n = check.substr(32, 32);
+			if (temp == check.substr(96*j, 32)) {
+				std::string n = check.substr(96 * j + 32, 32);
 				std::string t = addStr(attributeName, 32);
 				if (n == t) {
 					return true;
@@ -323,12 +326,12 @@ bool CatalogManager::hasIndex(const std::string indexName){
 	std::string temp = addStr(indexName, 32);
 	for (int i = 0; i < blockNum; i++) {
 		char * buf = bm.getPage(IndexInfoPath, i);
-		for (int j = 0; j < PAGESIZE / 97; j++) {
-			std::string check(buf + j * 97);
-			if (check.size() < 96) {
+		std::string check(buf);
+		for (int j = 0; j < PAGESIZE / 96 - 1; j++) {
+			if (check.size() < 96*(j+1)) {
 				continue;
 			}
-			if (temp == check.substr(64, 32)) {
+			if (temp == check.substr(96*j+64, 32)) {
 				return true;
 			}
 		}
@@ -348,16 +351,15 @@ void CatalogManager::dropIndex(const std::string indexName) {
 	for (int i = 0; i < blockNum; i++) {
 		char * buf = bm.getPage(IndexInfoPath, i);
 		int pageId = bm.getPageId(IndexInfoPath, i);
-		
-		for (int j = 0; j < PAGESIZE / 97; j++) {
-			std::string check(buf + j * 97);
-			if (check.size() < 96) {
+		std::string check(buf);
+		for (int j = 0; j < PAGESIZE / 96 - 1; j++) {
+			if (check.size() < 96*(j+1)) {
 				continue;
 			}
-			if (temp == check.substr(64, 32)) {
-				tableName = check.substr(0, 32);
+			if (temp == check.substr(96*j+64, 32)) {
+				tableName = check.substr(96 * j, 32);
 				std::string t = addStr("", 96);
-				strcpy_s(buf + 97 * j, 97, t.c_str());
+				strncpy_s(buf + 96 * j, PAGESIZE-96*j, t.c_str(), 96);
 				bm.modifyPage(pageId);
 				break;
 			}
@@ -368,16 +370,16 @@ void CatalogManager::dropIndex(const std::string indexName) {
 	for (int i = 0; i < blockNum; i++) {
 		char * buf = bm.getPage(TableInfoPath, i);
 		int pageId = bm.getPageId(TableInfoPath, i);
-		for (std::size_t j = 0; j < 4; j++) {
-			std::string check(buf + j * 1024);
-			if (check.size() < 1023) {
+		std::string check(buf);
+		for (std::size_t j = 0; j < 3; j++) {
+			if (check.size() < 1024*(j+1)) {
 				continue;
 			}
-			if (tableName == check.substr(0, 32)) {
-				std::string n = check.substr(676, 1);
+			if (tableName == check.substr(1024*j, 32)) {
+				std::string n = check.substr(1024 * j+676, 1);
 				int indexNum = atoi(n.c_str());
 				for (int k = 0; k < indexNum; k++) {
-					if (temp == check.substr(677 + 34 * k, 32)) {
+					if (temp == check.substr(1024 * j+677 + 34 * k, 32)) {
 						std::string t = addStr("#", 34);
 						for (std::size_t l = 0; l < 34; l++) {
 							buf[j * 1024 + 677 + 34 * k + l] = t.at(l);
@@ -395,6 +397,67 @@ void CatalogManager::dropIndex(const std::string indexName) {
 
 
 
+}
+
+bool CatalogManager::isUnique(const std::string tableName, const std::string attributeName) {
+	int blockNum = getBlockNum(TableInfoPath);
+	std::string temp = addStr(tableName, 32);
+
+	for (int i = 0; i < blockNum; i++) {
+		char * buf = bm.getPage(TableInfoPath, i);
+		std::string check(buf);
+		for (std::size_t j = 0; j < 3; j++) {
+			if (check.size() < 1024 * (j + 1)) {
+				continue;
+			}
+			if (temp == check.substr(1024 * j, 32)) {
+				std::string n = check.substr(1024 * j + 32, 2);
+				removeChara(n, '#');
+				int attributeNum = atoi(n.c_str());
+				std::string t = addStr(attributeName, 32);
+				for (int k = 0; k < attributeNum; k++) {
+					if (check.substr(1024 * j + 34 + k * 40 + 7, 32) == t) {
+						if (check.substr(1024 * j + 34 + k * 40 + 39, 1) == "1") {
+							return true;
+						}
+						else {
+							return false;
+						}
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+IndexInfo CatalogManager::getIndexInfo(const std::string indexName) {
+	IndexInfo result;
+	int blockNum = getBlockNum(IndexInfoPath);
+	std::string temp = addStr(indexName, 32);
+	for (int i = 0; i < blockNum; i++) {
+		char * buf = bm.getPage(IndexInfoPath, i);
+		std::string check(buf);
+		for (int j = 0; j < PAGESIZE / 96 - 1; j++) {
+			if (check.size() < 96 * (j + 1)) {
+				continue;
+			}
+			if (temp == check.substr(96 * j + 64, 32)) {
+				std::string tn = check.substr(96 * j, 32);
+				std::string an = check.substr(96 * j + 32, 32);
+				std::string in = check.substr(96 * j + 64, 32);
+
+				removeChara(tn, '#');
+				removeChara(an, '#');
+				removeChara(in, '#');
+
+				result.attributeName = an;
+				result.indexName = in;
+				result.tableName = tn;
+			}
+		}
+	}
+	return result;
 }
 
 
