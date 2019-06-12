@@ -27,7 +27,7 @@ class CatalogManager {
 		bool hasTable(const std::string tableName);
 		bool hasAttribute(const std::string tableName, const std::string attributeName);
 		void createIndex(const std::string tableName, const std::string attributeName, const std::string indexName);
-		bool attributeHasIndex(const std::string tableName, const std::string attributeName, const std::string indexName);
+		bool attributeHasIndex(const std::string tableName, const std::string attributeName);
 		void dropIndex(const std::string indexName);
 		int getBlockNum(const std::string fileName);
 		std::string addStr(const std::string &str, std::size_t length);
