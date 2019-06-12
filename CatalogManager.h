@@ -35,8 +35,9 @@ class CatalogManager {
 		void removeChara(std::string &str, char c);
 		bool hasIndex(const std::string indexName);
 		bool isUnique(const std::string tableName, const std::string attributeName);
-		IndexInfo getIndexInfo(const std::string indexName);
+		std::vector<IndexInfo> getIndexInfo();
 		TableInfo getTableInfo(const std::string tableName);
+		std::string getType(const std::string tableName, const std::string attributeName);
 		
 
 	private:
