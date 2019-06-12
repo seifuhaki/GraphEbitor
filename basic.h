@@ -18,14 +18,15 @@ struct data {
 	std::string datas;
 };
 struct Where {
-	data data; //Êı¾İ
-	WHERE relation_character;   //¹ØÏµ
+	data data; //æ•°æ®
+	WHERE relation_character;   //å…³ç³»
 };
 class IndexInfo {
 public:
 	std::string indexName;
 	std::string tableName;
 	std::string attributeName;
+	std::string type;
 };
 class TableInfo {
 public:
@@ -36,42 +37,42 @@ public:
 };
 class Tuple {
 private:
-	std::vector<data> data_;  //´æ´¢Ôª×éÀïµÄÃ¿¸öÊı¾İµÄĞÅÏ¢
+	std::vector<data> data_;  //å­˜å‚¨å…ƒç»„é‡Œçš„æ¯ä¸ªæ•°æ®çš„ä¿¡æ¯
 	bool isDeleted_;
 public:
 	Tuple() : isDeleted_(false) {};
-	Tuple(const Tuple &tuple_in);  //¿½±´Ôª×é
-	void addData(data data_in);  //ĞÂÔöÔª×é
-	std::vector<data> getData() const;  //·µ»ØÊı¾İ
-	int getSize();  //·µ»ØÔª×éµÄÊı¾İÊıÁ¿
+	Tuple(const Tuple &tuple_in);  //æ‹·è´å…ƒç»„
+	void addData(data data_in);  //æ–°å¢å…ƒç»„
+	std::vector<data> getData() const;  //è¿”å›æ•°æ®
+	int getSize();  //è¿”å›å…ƒç»„çš„æ•°æ®æ•°é‡
 	bool isDeleted();
 	void setDeleted();
-	void showTuple();  //ÏÔÊ¾Ôª×éÖĞµÄËùÓĞÊı¾İ
+	void showTuple();  //æ˜¾ç¤ºå…ƒç»„ä¸­çš„æ‰€æœ‰æ•°æ®
 };
 class Table {
 private:
-	std::string tableName;  //±íÃû
-	std::vector<Tuple> tuple_;  //´æ·ÅËùÓĞµÄÔª×é
-	std::vector<IndexInfo> index_;  //±íµÄË÷ÒıĞÅÏ¢
+	std::string tableName;  //è¡¨å
+	std::vector<Tuple> tuple_;  //å­˜æ”¾æ‰€æœ‰çš„å…ƒç»„
+	std::vector<IndexInfo> index_;  //è¡¨çš„ç´¢å¼•ä¿¡æ¯
 public:
-	TableInfo attr_;  //Êı¾İµÄÀàĞÍ
-	//¹¹Ôìº¯Êı
+	TableInfo attr_;  //æ•°æ®çš„ç±»å‹
+	//æ„é€ å‡½æ•°
 	Table() {};
 	Table(std::string title, TableInfo attr);
 	Table(const Table &table_in);
 
-	// int DataSize();  //Ã¿¸ötupleÕ¼µÄÊı¾İ´óĞ¡
+	// int DataSize();  //æ¯ä¸ªtupleå çš„æ•°æ®å¤§å°
 
-	int setIndex(std::string attributeName, std::string index_name);  //²åÈëË÷Òı£¬ÊäÈëÒª½¨Á¢Ë÷ÒıµÄAttributeµÄ±àºÅ£¬ÒÔ¼°Ë÷ÒıµÄÃû×Ö£¬³É¹¦·µ»Ø1Ê§°Ü·µ»Ø0
-	int dropIndex(std::string index_name);  //É¾³ıË÷Òı£¬ÊäÈë½¨Á¢µÄË÷ÒıµÄÃû×Ö£¬³É¹¦·µ»Ø1Ê§°Ü·µ»Ø0
+	int setIndex(std::string attributeName, std::string index_name);  //æ’å…¥ç´¢å¼•ï¼Œè¾“å…¥è¦å»ºç«‹ç´¢å¼•çš„Attributeçš„ç¼–å·ï¼Œä»¥åŠç´¢å¼•çš„åå­—ï¼ŒæˆåŠŸè¿”å›1å¤±è´¥è¿”å›0
+	int dropIndex(std::string index_name);  //åˆ é™¤ç´¢å¼•ï¼Œè¾“å…¥å»ºç«‹çš„ç´¢å¼•çš„åå­—ï¼ŒæˆåŠŸè¿”å›1å¤±è´¥è¿”å›0
 
-	//privateµÄÊä³ö½Ó¿Ú
+	//privateçš„è¾“å‡ºæ¥å£
 	std::string getTitle();
 	TableInfo getAttr();
 	std::vector<Tuple>& getTuple();
 	std::vector<IndexInfo>& getIndex();
 
-	void showTable(); //ÏÔÊ¾tableµÄ²¿·ÖÊı¾İ
+	void showTable(); //æ˜¾ç¤ºtableçš„éƒ¨åˆ†æ•°æ®
 	void showTable(int limit);
 };
 #endif
