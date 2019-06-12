@@ -456,7 +456,7 @@ std::vector<IndexInfo> CatalogManager::getIndexInfo() {
 				newIndex.attributeName = an;;
 				newIndex.indexName = in;
 				newIndex.tableName = tn;
-				newIndex.types = getType(tn, an);
+				newIndex.type = getType(tn, an);
 
 				results.push_back(newIndex);
 			}
