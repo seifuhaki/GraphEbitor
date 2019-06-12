@@ -12,7 +12,7 @@ inline int Tuple::getSize() {
 }
 
 //新增数据
-void Tuple::addData(Data data_in) {
+void Tuple::addData(data data_in) {
 	this->data_.push_back(data_in);
 }
 
@@ -25,7 +25,7 @@ void Tuple::setDeleted() {
 }
 
 //得到元组中的数据
-std::vector<Data> Tuple::getData() const {
+std::vector<data> Tuple::getData() const {
 	return this->data_;
 }
 

@@ -1,4 +1,4 @@
-﻿#include "buffer_manager.h"
+﻿#include "BufferManager.h"
 // Page类的实现
 Page::Page() {
 	initialize();

@@ -16,7 +16,7 @@ typedef enum {
 //一个struct存放它的一条信息的类型和值
 //用一个strunt嵌套一个union实现多种类型的转换
 //type的类型：-1：int,0:float,1-255:string(数值为字符串的长度+1),注意使用时对Value的选择！
-struct Data {
+struct data {
 	int type;
 	int datai;
 	float dataf;
@@ -25,7 +25,7 @@ struct Data {
 
 //Where存放一组判断语句
 struct Where {
-	Data data; //数据
+	data data; //数据
 	WHERE relation_character;   //关系
 };
 
@@ -49,13 +49,13 @@ struct Index {
 //元组管理，数据只增不减
 class Tuple {
 private:
-	std::vector<Data> data_;  //存储元组里的每个数据的信息
+	std::vector<data> data_;  //存储元组里的每个数据的信息
 	bool isDeleted_;
 public:
 	Tuple() : isDeleted_(false) {};
 	Tuple(const Tuple &tuple_in);  //拷贝元组
-	void addData(Data data_in);  //新增元组
-	std::vector<Data> getData() const;  //返回数据
+	void addData(data data_in);  //新增元组
+	std::vector<data> getData() const;  //返回数据
 	int getSize();  //返回元组的数据数量
 	bool isDeleted();
 	void setDeleted();

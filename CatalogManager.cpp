@@ -462,7 +462,6 @@ IndexInfo CatalogManager::getIndexInfo(const std::string indexName) {
 	}
 	return result;
 }
-
 TableInfo CatalogManager::getTableInfo(const std::string tableName) {
 	if (!hasTable(tableName)) {
 		throw tableNotExists();
@@ -471,8 +470,8 @@ TableInfo CatalogManager::getTableInfo(const std::string tableName) {
 	int blockNum = getBlockNum(TableInfoPath);
 	std::string temp = addStr(tableName, 32);
 	TableInfo result;
-	result.attributeNames.clear();
-	result.types.clear();
+	result.name.clear();
+	result.type.clear();
 	result.unique.clear();
 	result.tableName = tableName;
 	for (int i = 0; i < blockNum; i++) {
@@ -498,8 +497,8 @@ TableInfo CatalogManager::getTableInfo(const std::string tableName) {
 					}
 					removeChara(an, '#');
 					removeChara(ty, '#');
-					result.attributeNames.push_back(an);
-					result.types.push_back(ty);
+					result.name.push_back(an);
+					result.type.push_back(ty);
 					result.unique.push_back(uq);
 				}
 			}

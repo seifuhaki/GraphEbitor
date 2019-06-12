@@ -3,7 +3,8 @@
 
 #include <string>
 #include <vector>
-#include "buffer_manager.h"
+#include "basic.h"
+#include "BufferManager.h"
 #include "Exception.h"
 
 // fixed length record
@@ -25,6 +26,7 @@ class IndexInfo {
 		std::string attributeName;
 };
 
+
 class CatalogManager {
 	public:
 		CatalogManager();
@@ -43,6 +45,7 @@ class CatalogManager {
 		bool isUnique(const std::string tableName, const std::string attributeName);
 		IndexInfo getIndexInfo(const std::string indexName);
 		TableInfo getTableInfo(const std::string tableName);
+		
 
 	private:
 		BufferManager bm;

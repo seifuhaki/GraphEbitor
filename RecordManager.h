@@ -10,9 +10,9 @@
 #include <vector>
 #include <sstream>
 #include "basic.h"
-//#include "index_manager.h"
+#include "IndexManager.h"
 #include "CatalogManager.h"
-#include "buffer_manager.h"
+#include "BufferManager.h"
 #include "exception.h"
 extern BufferManager bm;
 class RecordManager {
@@ -63,7 +63,7 @@ public:
 	//void createIndex(IndexManager& index_manager, std::string table_name, std::string target_attr);
 private:
 	//insertRecord的辅助函数
-	void insertRecord1(char* p, int offset, int len, const std::vector<Data>& v);
+	void insertRecord1(char* p, int offset, int len, const std::vector<data>& v);
 	//deleteRecord的辅助函数
 	char* deleteRecord1(char* p);
 	//从内存中读取一个tuple
@@ -71,9 +71,9 @@ private:
 	//获取一个tuple的长度
 	int getTupleLength(char* p);
 	//判断插入的记录是否和其他记录冲突
-	//bool isConflict(std::vector<Tuple>& tuples, std::vector<Data>& v, int index);
+	bool isConflict(std::vector<Tuple>& tuples, std::vector<data>& v, int index);
 	//带索引查找
-	//void searchWithIndex(std::string table_name, std::string target_attr, Where where, std::vector<int>& block_ids);
+	void searchWithIndex(std::string table_name, std::string target_attr, Where where, std::vector<int>& block_ids);
 	//在块中进行条件删除
 	int conditionDeleteInBlock(std::string table_name, int block_id, Attribute attr, int index, Where where);
 	//在块中进行条件查询

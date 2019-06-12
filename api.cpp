@@ -168,51 +168,7 @@ Table API::unionTable(Table &table1, Table &table2, std::string target_attr, Whe
 
 	std::sort(result_tuple.begin(), result_tuple.end(), sortcmp);
 	return result_table;
-	//std::merge(tuple1.begin(), tuple1.end(), tuple2.begin(), tuple2.end(), std::back_inserter(result_tuple), sortcmp);
-	//result_tuple.erase(unique(result_tuple.begin(), result_tuple.end(), calcmp), result_tuple.end());
 
-//    int i;
-//    for (i = 0; i < tuple1.size() && i < tuple2.size(); i++) {
-//        std::vector<Data> data1 = tuple1[i].getData();
-//        std::vector<Data> data2 = tuple2[i].getData();
-//        
-//        int j;
-//        for (j = 0; j < data1.size(); j++) {
-//            int flag = 0;
-//
-//            switch (data1[i].type) {
-//                case -1: {
-//                    if (data1[i].datai != data2[i].datai) {
-//                        if (data1[i].datai < data2[i].datai)
-//                            flag = 1;
-//                        else
-//                            flag = -1;
-//                    }
-//                } break;
-//                case 0: {
-//                    if (data1[i].dataf != data2[i].dataf) {
-//                        if (data1[i].dataf < data2[i].dataf)
-//                            flag = 1;
-//                        else
-//                            flag = -1;
-//                    }
-//                } break;
-//                default: {
-//                    if (data1[i].datas < data2[i].datas)
-//                        flag = 1;
-//                    else
-//                        flag = -1;
-//                } break;
-//            }
-//            
-//            if (flag)
-//                break;
-//        }
-//        
-//        switch (flag) {
-//            case 1:
-//        }
-//    }
 }
 
 //私有函数，用于多条件查询时的and条件合并
@@ -234,21 +190,13 @@ Table API::joinTable(Table &table1, Table &table2, std::string target_attr, Wher
 			result_tuple.push_back(tuple2[j]);
 
 	std::sort(result_tuple.begin(), result_tuple.end(), sortcmp);
-	return result_table;
-	//	std::vector<Tuple>().swap(result_tuple);
-	//	std::sort(tuple1.begin(), tuple1.end(), sortcmp);
-	//	std::sort(tuple2.begin(), tuple2.end(), sortcmp);
-
-		//std::set_intersection(tuple1.begin(), tuple1.end(), tuple2.begin(), tuple2.end(), std::back_inserter(result_tuple), calcmp);
-
-		//return result_table;
 }
 
 //用于对vector的sort时排序
 bool sortcmp(const Tuple &tuple1, const Tuple &tuple2)
 {
-	std::vector<Data> data1 = tuple1.getData();
-	std::vector<Data> data2 = tuple2.getData();
+	std::vector<data> data1 = tuple1.getData();
+	std::vector<data> data2 = tuple2.getData();
 
 	switch (data1[0].type) {
 	case -1: return data1[0].datai < data2[0].datai;
@@ -262,8 +210,8 @@ bool calcmp(const Tuple &tuple1, const Tuple &tuple2)
 {
 	int i;
 
-	std::vector<Data> data1 = tuple1.getData();
-	std::vector<Data> data2 = tuple2.getData();
+	std::vector<data> data1 = tuple1.getData();
+	std::vector<data> data2 = tuple2.getData();
 
 	for (i = 0; i < data1.size(); i++) {
 		bool flag = false;
@@ -294,7 +242,7 @@ bool calcmp(const Tuple &tuple1, const Tuple &tuple2)
 
 bool isSatisfied(Tuple& tuple, int target_attr, Where where)
 {
-	std::vector<Data> data = tuple.getData();
+	std::vector<data> data = tuple.getData();
 
 	switch (where.relation_character) {
 	case LESS: {

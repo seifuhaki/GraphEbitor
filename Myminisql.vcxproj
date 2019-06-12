@@ -115,16 +115,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="api.h" />
     <ClInclude Include="basic.h" />
-    <ClInclude Include="buffer_manager.h" />
+    <ClInclude Include="BPlusTree.h" />
+    <ClInclude Include="BufferManager.h" />
     <ClInclude Include="CatalogManager.h" />
     <ClInclude Include="Exception.h" />
+    <ClInclude Include="IndexManager.h" />
+    <ClInclude Include="Interpreter.h" />
     <ClInclude Include="RecordManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="api.cpp" />
     <ClCompile Include="basic.cpp" />
-    <ClCompile Include="buffer_manager.cpp" />
+    <ClCompile Include="BufferManager.cpp" />
     <ClCompile Include="CatalogManager.cpp" />
+    <ClCompile Include="IndexManager.cpp" />
+    <ClCompile Include="Interpreter.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="RecordManager.cpp" />
   </ItemGroup>
