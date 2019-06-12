@@ -55,4 +55,8 @@ class illegalIdentifier : public std::exception {
 
 };
 
+class targetNotFound : public std::exception {
+
+};
+
 #endif
