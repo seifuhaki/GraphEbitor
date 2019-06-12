@@ -175,7 +175,7 @@ void CatalogManager::createIndex(const std::string tableName, const std::string 
 	if (!isUnique(tableName, attributeName)) {
 		throw attributeNotUnique();
 	}
-	if (attributeHasIndex(tableName, attributeName, indexName)) {
+	if (attributeHasIndex(tableName, attributeName)) {
 		throw duplicateIndexOnAttribute();
 	}
 	if (hasIndex(indexName)) {
@@ -297,7 +297,7 @@ void CatalogManager::removeChara(std::string &str, char c) {
 	}
 }
 
-bool CatalogManager::attributeHasIndex(const std::string tableName, const std::string attributeName, const std::string indexName) {
+bool CatalogManager::attributeHasIndex(const std::string tableName, const std::string attributeName) {
 	int blockNum = getBlockNum(IndexInfoPath);
 	std::string temp = addStr(tableName, 32);
 
