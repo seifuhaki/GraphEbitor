@@ -42,6 +42,7 @@ class CatalogManager {
 		bool hasIndex(const std::string indexName);
 		bool isUnique(const std::string tableName, const std::string attributeName);
 		IndexInfo getIndexInfo(const std::string indexName);
+		TableInfo getTableInfo(const std::string tableName);
 
 	private:
 		BufferManager bm;
