@@ -175,7 +175,7 @@ void CatalogManager::createIndex(const std::string tableName, const std::string 
 	if (!isUnique(tableName, attributeName)) {
 		throw attributeNotUnique();
 	}
-	if (attributeHasIndex(tableName, attributeName, indexName)) {
+	if (attributeHasIndex(tableName, attributeName)) {
 		throw duplicateIndexOnAttribute();
 	}
 	if (hasIndex(indexName)) {
