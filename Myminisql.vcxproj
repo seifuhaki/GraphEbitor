@@ -74,7 +74,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -115,16 +115,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="api.h" />
+    <ClInclude Include="basic.h" />
     <ClInclude Include="buffer_manager.h" />
+    <ClInclude Include="CatalogManager.h" />
     <ClInclude Include="Exception.h" />
-    <ClInclude Include="Interpreter.h" />
+    <ClInclude Include="RecordManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="api.cpp" />
+    <ClCompile Include="basic.cpp" />
     <ClCompile Include="buffer_manager.cpp" />
-    <ClCompile Include="Interpreter.cpp" />
-    <ClCompile Include="simpleTry.cpp" />
+    <ClCompile Include="CatalogManager.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="RecordManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
