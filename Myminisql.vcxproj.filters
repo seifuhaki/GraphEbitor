@@ -24,9 +24,6 @@
     <ClInclude Include="RecordManager.h">
       <Filter>源文件</Filter>
     </ClInclude>
-    <ClInclude Include="basic.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
     <ClInclude Include="Interpreter.h">
       <Filter>源文件</Filter>
     </ClInclude>
@@ -51,9 +48,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="basic.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Interpreter.cpp">

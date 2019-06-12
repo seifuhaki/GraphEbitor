@@ -470,8 +470,8 @@ TableInfo CatalogManager::getTableInfo(const std::string tableName) {
 	int blockNum = getBlockNum(TableInfoPath);
 	std::string temp = addStr(tableName, 32);
 	TableInfo result;
-	result.name.clear();
-	result.type.clear();
+	result.attributeNames.clear();
+	result.types.clear();
 	result.unique.clear();
 	result.tableName = tableName;
 	for (int i = 0; i < blockNum; i++) {
@@ -497,8 +497,8 @@ TableInfo CatalogManager::getTableInfo(const std::string tableName) {
 					}
 					removeChara(an, '#');
 					removeChara(ty, '#');
-					result.name.push_back(an);
-					result.type.push_back(ty);
+					result.attributeNames.push_back(an);
+					result.types.push_back(ty);
 					result.unique.push_back(uq);
 				}
 			}
