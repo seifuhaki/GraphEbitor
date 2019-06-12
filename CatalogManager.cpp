@@ -432,6 +432,9 @@ bool CatalogManager::isUnique(const std::string tableName, const std::string att
 }
 
 IndexInfo CatalogManager::getIndexInfo(const std::string indexName) {
+	if (!hasIndex(indexName)) {
+		throw indexNotExist();
+	}
 	IndexInfo result;
 	int blockNum = getBlockNum(IndexInfoPath);
 	std::string temp = addStr(indexName, 32);
@@ -460,7 +463,50 @@ IndexInfo CatalogManager::getIndexInfo(const std::string indexName) {
 	return result;
 }
 
+TableInfo CatalogManager::getTableInfo(const std::string tableName) {
+	if (!hasTable(tableName)) {
+		throw tableNotExists();
+	}
 
+	int blockNum = getBlockNum(TableInfoPath);
+	std::string temp = addStr(tableName, 32);
+	TableInfo result;
+	result.attributeNames.clear();
+	result.types.clear();
+	result.unique.clear();
+	result.tableName = tableName;
+	for (int i = 0; i < blockNum; i++) {
+		char * buf = bm.getPage(TableInfoPath, i);
+		std::string check(buf);
+		for (std::size_t j = 0; j < 3; j++) {
+			if (check.size() < 1024 * (j + 1)) {
+				continue;
+			}
+			if (temp == check.substr(1024 * j, 32)) {
+				std::string n = check.substr(1024 * j + 32, 2);
+				removeChara(n, '#');
+				int attributeNum = atoi(n.c_str());
+				for (int k = 0; k < attributeNum; k++) {
+					std::string an = check.substr(1024 * j + 34 + k * 40 + 7, 32);
+					std::string ty = check.substr(1024 * j + 34 + k * 40, 7);
+					bool uq;
+					if (check.substr(1024 * j + 34 + k * 40 + 39, 1) == "1") {
+						uq = true;
+					}
+					else {
+						uq = false;
+					}
+					removeChara(an, '#');
+					removeChara(ty, '#');
+					result.attributeNames.push_back(an);
+					result.types.push_back(ty);
+					result.unique.push_back(uq);
+				}
+			}
+		}
+	}
+	return result;
+}
 
 
 
