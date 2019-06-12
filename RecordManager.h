@@ -9,12 +9,12 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include "basic.h"
 #include "IndexManager.h"
 #include "CatalogManager.h"
 #include "BufferManager.h"
 #include "exception.h"
 extern BufferManager bm;
+
 class RecordManager {
 public:
 	//输入：表名
@@ -33,7 +33,7 @@ public:
 	//异常：如果元组类型不匹配，抛出tuple_type_conflict异常。如果
 	//主键冲突，抛出primary_key_conflict异常。如果unique属性冲突，
 	//抛出unique_conflict异常。如果表不存在，抛出table_not_exist异常。
-	void insertRecord(std::string tableName, Tuple& tuple);
+	void insertRecord(std::string tableName, Tuple &tuple);
 	//输入：表名
 	//输出：int(删除的记录数)
 	//功能：删除对应表中所有记录（不删除表文件）

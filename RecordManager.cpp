@@ -20,9 +20,22 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple)
 	if (!cm.hasTable(tmpName)){
 		throw(tableNotExists());
 	}
+	TableInfo attr = cm.getTableInfo(tmpName);
 	std::vector<data> v = tuple.getData();
-	
-
+	//检测插入的元组的各个属性是否合法
+	for (int i = 0; i < v.size(); i++) {
+		if (v[i].type != attr.types[i])
+			throw (tupleTypeConflict());
+	}
+	Table table = selectRecord(tmpName);
+	std::vector<Tuple>& tuples = table.getTuple();
+	//检测是否存在unique冲突
+	for (int i = 0; i < attr.unique.size(); i++) {
+		if (attr.unique[i] == true) {
+			if (isConflict(tuples, v, i) == true)
+				throw (uniqueConflict());
+		}
+	}
 	//异常判断完成
 	int blockNum = cm.getBlockNum(tableName);
 	if (blockNum <= 0)blockNum = 1;
@@ -34,18 +47,16 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple)
 	//计算Tuple的长度
 	for (j = 0; j < v.size(); j++) {
 		data d = v[j];
-		switch (d.type) {
-		case -1: {
+		if(d.type == "int") {
 			int t = getDataLength(d.datai);
 			len += t; break;
 		}
-		case 0: {
+		else if(d.type == "float") {
 			float t = getDataLength(d.dataf);
 			len += t; break;
 		}
-		default: {
+		else {
 			len += d.datas.length();
-		}
 		}
 	}
 	len += v.size() + 7;
@@ -71,10 +82,10 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple)
 		bm.modifyPage(pageId);
 	}
 	//更新索引
-	IndexManager index_manager(tmpName, attr_name, types);
-	for (int i = 0; i < attr.num; i++) {
+	for (int i = 0; i < attr.attributeNames.size(); i++) {
 		if (attr.has_index[i] == true) {
-			std::string attr_name = attr.name[i];
+			IndexManager im(tmpName, attr.attributeNames[i], attr.types[i]);
+			std::string attr_name = attr.attributeNames[i];
 			std::string file_path = "INDEX_FILE_" + attr_name + "_" + tmp_name;
 			std::vector<data> d = tuple.getData();
 			
@@ -452,6 +463,27 @@ void RecordManager::conditionSelectInBlock(std::string table_name, int block_id,
 		p = p + len;
 	}
 }
+//判断插入的记录是否和其他记录冲突
+bool RecordManager::isConflict(std::vector<Tuple>& tuples, std::vector<data>& v, int index) {
+	for (int i = 0; i < tuples.size(); i++) {
+		if (tuples[i].isDeleted() == true)
+			continue;
+		std::vector<data> d = tuples[i].getData();
+		if (v[index].type == "int") {
+			if (v[index].datai == d[index].datai)
+				return true;
+		}
+		else if (v[index].type == "float") {
+			if (v[index].dataf == d[index].dataf)
+				return true;
+		}
+		else {
+			if (v[index].datas == d[index].datas)
+				return true;
+		}
+		return false;
+	}
+}
 template <typename T>
 int getDataLength(T data) {
 	std::stringstream stream;
@@ -466,4 +498,5 @@ void copyString(char* p, int& offset, T data) {
 	for (int i = 0; i < s1.length(); i++, offset++)
 		p[offset] = s1[i];
 }
+
 

@@ -19,21 +19,6 @@
 #define TableInfoPath "CatalogInfo/TableInfo.txt"
 #define IndexInfoPath "CatalogInfo/IndexInfo.txt"
 
-class IndexInfo {
-	public:
-		std::string indexName;
-		std::string tableName;
-		std::string attributeName;
-};
-
-class TableInfo {
-	public:
-		std::string tableName;
-		std::vector<std::string> attributeNames;
-		std::vector<std::string> types;
-		std::vector<bool> unique;
-};
-
 class CatalogManager {
 	public:
 		CatalogManager();

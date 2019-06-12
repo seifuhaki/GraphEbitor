@@ -63,4 +63,11 @@ class attributeNotUnique : public std::exception {
 
 };
 
+class tupleTypeConflict : public std::exception {
+
+};
+
+class uniqueConflict : public std::exception {
+
+};
 #endif
