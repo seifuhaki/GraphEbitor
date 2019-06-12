@@ -26,6 +26,13 @@ class IndexInfo {
 		std::string attributeName;
 };
 
+class TableInfo {
+	public:
+		std::string tableName;
+		std::vector<std::string> attributeNames;
+		std::vector<std::string> types;
+		std::vector<bool> unique;
+};
 
 class CatalogManager {
 	public:
