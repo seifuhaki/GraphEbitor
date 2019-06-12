@@ -59,4 +59,8 @@ class targetNotFound : public std::exception {
 
 };
 
+class attributeNotUnique : public std::exception {
+
+};
+
 #endif
