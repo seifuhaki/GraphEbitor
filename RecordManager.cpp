@@ -128,7 +128,7 @@ int RecordManager::deleteRecord(std::string tableName, std::string AttributeName
 	for (int i = 0; i < attr.attributeNames.size(); i++) {
 		if (attr.attributeNames[i] == target_attr) {
 			index = i;
-			if (attr.has_index[i] == true)
+			if (cm.attributeHasIndex(tmpName, target_attr) == true)
 				flag = true;
 			break;
 		}
@@ -159,7 +159,7 @@ int RecordManager::deleteRecord(std::string tableName, std::string AttributeName
 	return count;
 }
 
-Table selectRecord(std::string tableName, std::string resultTableName = "tmptable")
+Table RecordManager::selectRecord(std::string tableName, std::string resultTableName)
 {
 	std::string tmpName = tableName;
 	tableName = tableName + ".txt";
@@ -170,15 +170,18 @@ Table selectRecord(std::string tableName, std::string resultTableName = "tmptabl
 
 	int blockNum = cm.getBlockNum(tableName);
 	if(blockNum<=0)blockNum = 1;
-	Attribute attr = cm.getAttribute(tmpName);
+	TableInfo attr = cm.getTableInfo(tmpName);
 	Table table(resultTableName, attr);
 	std::vector<Tuple> &v = table.getTuple();
 	//遍历所有块
 	for (int i = 0; i < blockNum; i++) {
 		char *p = bm.getPage(tableName, i);
 		char *t = p;
-		while (*p != '\0'&& p < t + PAGESIZE) {
+		//遍历块中所有记录
+		while (*p != '\0' && p < t + PAGESIZE) {
+			//读取记录
 			Tuple tuple = readTuple(p, attr);
+			//如果记录没有被删除，将其添加到table中
 			if (tuple.isDeleted() == false)
 				v.push_back(tuple);
 			int len = getTupleLength(p);
@@ -196,25 +199,25 @@ Table RecordManager::selectRecord(std::string tableName, std::string target_attr
 	if (!cm.hasTable(tmpName)) {
 		throw tableNotExists();
 	}
-	Attribute attr = cm.getAttribute(tmpName);
+	TableInfo attr = cm.getTableInfo(tmpName);
 	int index = -1;
 	bool flag = false;
 	//获取目标属性的编号
-	for (int i = 0; i < attr.num; i++) {
-		if (attr.name[i] == target_attr) {
+	for (int i = 0; i < attr.attributeNames.size(); i++) {
+		if (attr.attributeNames[i] == target_attr) {
 			index = i;
-			if (attr.has_index[i] == true)
+			if (cm.attributeHasIndex(tmpName, target_attr) == true)
 				flag = true;
 			break;
 		}
 	}
 	//目标属性不存在，抛出异常
 	if (index == -1) {
-		throw attribute_not_exist();
+		throw attributeNotExists();
 	}
 	//where条件中的两个数据的类型不匹配，抛出异常
-	else if (attr.type[index] != where.data.type) {
-		throw data_type_conflict();
+	else if (attr.types[index] != where.data.type) {
+		throw dataTypeConflict();
 	}
 
 	//异常检测完成
@@ -257,16 +260,14 @@ void RecordManager::insertRecord1(char* p, int offset, int len, const std::vecto
 		p[offset] = ' ';
 		offset++;
 		data d = v[j];
-		switch (d.type) {
-		case -1: {
+		if (d.type == "int") {
 			copyString(p, offset, d.datai);
-		}; break;
-		case 0: {
+		}
+		else if(d.type == "float") {
 			copyString(p, offset, d.dataf);
-		}; break;
-		default: {
+		}
+		else {
 			copyString(p, offset, d.datas);
-		};
 		}
 	}
 	p[offset] = ' ';
@@ -281,12 +282,12 @@ char* RecordManager::deleteRecord1(char* p) {
 	return p;
 }
 //从内存中读取一个tuple
-Tuple RecordManager::readTuple(const char* p, Attribute attr) {
+Tuple RecordManager::readTuple(char* p, TableInfo attr) {
 	Tuple tuple;
 	p = p + 5;
-	for (int i = 0; i < attr.num; i++) {
+	for (int i = 0; i < attr.attributeNames.size(); i++) {
 		data data;
-		data.type = attr.type[i];
+		data.type = attr.types[i];
 		char tmp[100];
 		int j;
 		for (j = 0; *p != ' '; j++, p++) {
@@ -295,18 +296,16 @@ Tuple RecordManager::readTuple(const char* p, Attribute attr) {
 		tmp[j] = '\0';
 		p++;
 		std::string s(tmp);
-		switch (data.type) {
-		case -1: {
+		if(data.type == "int") {
 			std::stringstream stream(s);
 			stream >> data.datai;
-		}; break;
-		case 0: {
+		}
+		else if(data.type == "float") {
 			std::stringstream stream(s);
 			stream >> data.dataf;
-		}; break;
-		default: {
-			data.datas = s;
 		}
+		else {
+			data.datas = s;
 		}
 		tuple.addData(data);
 	}
@@ -314,7 +313,6 @@ Tuple RecordManager::readTuple(const char* p, Attribute attr) {
 		tuple.setDeleted();
 	return tuple;
 }
-
 //获取一个tuple的长度
 int RecordManager::getTupleLength(char* p) {
 	char tmp[10];
@@ -326,60 +324,20 @@ int RecordManager::getTupleLength(char* p) {
 	int len = stoi(s);
 	return len;
 }
-//带索引查找
-void RecordManager::searchWithIndex(std::string table_name, std::string target_attr, Where where, std::vector<int>& block_ids) {
-	IndexManager index_manager(table_name);
-	Data tmp_data;
-	std::string file_path = "INDEX_FILE_" + target_attr + "_" + table_name;
-	if (where.relation_character == LESS || where.relation_character == LESS_OR_EQUAL) {
-		if (where.data.type == -1) {
-			tmp_data.type = -1;
-			tmp_data.datai = -INF;
-		}
-		else if (where.data.type == 0) {
-			tmp_data.type = 0;
-			tmp_data.dataf = -INF;
-		}
-		else {
-			tmp_data.type = 1;
-			tmp_data.datas = "";
-		}
-		index_manager.searchRange(file_path, tmp_data, where.data, block_ids);
-	}
-	else if (where.relation_character == GREATER || where.relation_character == GREATER_OR_EQUAL) {
-		if (where.data.type == -1) {
-			tmp_data.type = -1;
-			tmp_data.datai = INF;
-		}
-		else if (where.data.type == 0) {
-			tmp_data.type = 0;
-			tmp_data.dataf = INF;
-		}
-		else {
-			tmp_data.type = -2;
-		}
-		index_manager.searchRange(file_path, where.data, tmp_data, block_ids);
-	}
-	else {
-		index_manager.searchRange(file_path, where.data, where.data, block_ids);
-	}
-}
-
 //在块中进行条件删除
-int RecordManager::conditionDeleteInBlock(std::string table_name, int block_id, Attribute attr, int index, Where where) {
+int RecordManager::conditionDeleteInBlock(std::string tableName, int block_id, TableInfo attr, int index, Where where) {
 	//获取当前块的句柄
-	table_name = "./database/data/" + table_name;//新增
-	char* p = buffer_manager.getPage(table_name, block_id);
+	tableName = tableName + ".txt";//新增
+	char* p = bm.getPage(tableName, block_id);
 	char* t = p;
 	int count = 0;
 	//遍历块中所有记录
 	while (*p != '\0' && p < t + PAGESIZE) {
 		//读取记录
 		Tuple tuple = readTuple(p, attr);
-		std::vector<Data> d = tuple.getData();
+		std::vector<data> d = tuple.getData();
 		//根据属性类型执行不同操作
-		switch (attr.type[index]) {
-		case -1: {
+		if(attr.types[index] == "int") {
 			//如果满足where条件
 			if (isSatisfied(d[index].datai, where.data.datai, where.relation_character) == true) {
 				//将记录删除
@@ -391,9 +349,8 @@ int RecordManager::conditionDeleteInBlock(std::string table_name, int block_id, 
 				int len = getTupleLength(p);
 				p = p + len;
 			}
-		}; break;
-			//同case1
-		case 0: {
+		}
+		else if(attr.types[index] == "float"){
 			if (isSatisfied(d[index].dataf, where.data.dataf, where.relation_character) == true) {
 				p = deleteRecord1(p);
 				count++;
@@ -402,9 +359,8 @@ int RecordManager::conditionDeleteInBlock(std::string table_name, int block_id, 
 				int len = getTupleLength(p);
 				p = p + len;
 			}
-		}; break;
-			//同case1
-		default: {
+		}
+		else {
 			if (isSatisfied(d[index].datas, where.data.datas, where.relation_character) == true) {
 				p = deleteRecord1(p);
 				count++;
@@ -414,21 +370,54 @@ int RecordManager::conditionDeleteInBlock(std::string table_name, int block_id, 
 				p = p + len;
 			}
 		}
-		}
 	}
 	//将当前块写回文件
-	int page_id = buffer_manager.getPageId(table_name, block_id);
-	// buffer_manager.flushPage(page_id , table_name , block_id);
-	// 改为
-	buffer_manager.modifyPage(page_id);
+	int page_id = bm.getPageId(tableName, block_id);
+	bm.modifyPage(page_id);
 	return count;
 }
-
+//带索引查找
+void RecordManager::searchWithIndex(std::string tableName, std::string attributeName, Where where, std::vector<int>& block_ids) {
+	data tmp_data;
+	std::string file_path = "IndexManager\\" + tableName + "_" + attributeName + ".txt";
+	if (where.relation_character == LESS || where.relation_character == LESS_OR_EQUAL) {
+		if (where.data.type == "int") {
+			tmp_data.type = "int";
+			tmp_data.datai = -INF;
+		}
+		else if (where.data.type == "float") {
+			tmp_data.type = "float";
+			tmp_data.dataf = -INF;
+		}
+		else {
+			tmp_data.type = "string";
+			tmp_data.datas = "";
+		}
+		im.searchRange(file_path, tmp_data, where.data, block_ids);
+	}
+	else if (where.relation_character == GREATER || where.relation_character == GREATER_OR_EQUAL) {
+		if (where.data.type == "int") {
+			tmp_data.type = "int";
+			tmp_data.datai = INF;
+		}
+		else if (where.data.type == "float") {
+			tmp_data.type = "float";
+			tmp_data.dataf = INF;
+		}
+		else {
+			tmp_data.type = -2;
+		}
+		im.searchRange(file_path, where.data, tmp_data, block_ids);
+	}
+	else {
+		im.searchRange(file_path, where.data, where.data, block_ids);
+	}
+}
 //在块中进行条件查询
-void RecordManager::conditionSelectInBlock(std::string table_name, int block_id, Attribute attr, int index, Where where, std::vector<Tuple>& v) {
+void RecordManager::conditionSelectInBlock(std::string table_name, int block_id, TableInfo attr, int index, Where where, std::vector<Tuple>& v) {
 	//获取当前块的句柄
-	table_name = "./database/data/" + table_name;//新增
-	char* p = buffer_manager.getPage(table_name, block_id);
+	table_name = table_name + ".txt";//新增
+	char* p = bm.getPage(table_name, block_id);
 	char* t = p;
 	//遍历所有记录
 	while (*p != '\0' && p < t + PAGESIZE) {
@@ -440,28 +429,26 @@ void RecordManager::conditionSelectInBlock(std::string table_name, int block_id,
 			p = p + len;
 			continue;
 		}
-		std::vector<Data> d = tuple.getData();
+		std::vector<data> d = tuple.getData();
 		//根据属性类型选择
-		switch (attr.type[index]) {
-		case -1: {
+		if (attr.types[index] == "int") {
 			//满足条件，则将该元组添加到table
 			if (isSatisfied(d[index].datai, where.data.datai, where.relation_character) == true) {
 				v.push_back(tuple);
 			}
 			//不满足条件，跳过该记录
-		}; break;
+		}
 			//同case1
-		case 0: {
+		else if(attr.types[index] == "float"){
 			if (isSatisfied(d[index].dataf, where.data.dataf, where.relation_character) == true) {
 				v.push_back(tuple);
 			}
-		}; break;
+		}
 			//同case1
-		default: {
+		else {
 			if (isSatisfied(d[index].datas, where.data.datas, where.relation_character) == true) {
 				v.push_back(tuple);
 			}
-		};
 		}
 		int len = getTupleLength(p);
 		p = p + len;
@@ -502,5 +489,47 @@ void copyString(char* p, int& offset, T data) {
 	for (int i = 0; i < s1.length(); i++, offset++)
 		p[offset] = s1[i];
 }
+template <typename T>
+bool isSatisfied(T a, T b, WHERE relation) {
+	switch (relation) {
+	case LESS: {
+		if (a < b)
+			return true;
+		else
+			return false;
+	}; break;
+	case LESS_OR_EQUAL: {
+		if (a <= b)
+			return true;
+		else
+			return false;
+	}; break;
+	case EQUAL: {
+		if (a == b)
+			return true;
+		else
+			return false;
+	}; break;
+	case GREATER_OR_EQUAL: {
+		if (a >= b)
+			return true;
+		else
+			return false;
+	}; break;
+	case GREATER: {
+		if (a > b)
+			return true;
+		else
+			return false;
+	}; break;
+	case NOT_EQUAL: {
+		if (a != b)
+			return true;
+		else
+			return false;
+	}; break;
+	}
+}
+
 
 

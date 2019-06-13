@@ -311,3 +311,43 @@ void IndexManager::removeChara(std::string &str, char c) {
 		}
 	}
 }
+
+void IndexManager::searchRange(std::string file_path, data data1, data data2, std::vector<int>& vals)
+{
+	int flag = 0;
+	//检测数据类型是否匹配
+	if (data1.type == "") {
+		flag = 1;
+	}
+	else if (data2.type == "") {
+		flag = 2;
+	}
+
+	if (data1.type == "int") {
+		intMap::iterator itInt = indexIntMap.find(file_path);
+		if (itInt == indexIntMap.end()) {
+			// cout << "Error:in search index, no index " << file_path <<" exits" << endl;
+			return;
+		}
+		else
+			itInt->second->searchRange(data1.datai, data2.datai, vals, flag);
+	}
+	else if (data1.type == "float") {
+		floatMap::iterator itFloat = indexFloatMap.find(file_path);
+		if (itFloat == indexFloatMap.end()) {
+			// cout << "Error:in search index, no index " << file_path <<" exits" << endl;
+			return;
+		}
+		else
+			itFloat->second->searchRange(data1.dataf, data2.dataf, vals, flag);
+	}
+	else {
+		stringMap::iterator itString = indexStringMap.find(file_path);
+		if (itString == indexStringMap.end()) {
+			// cout << "Error:in search index, no index " << file_path <<" exits" << endl;
+			return;
+		}
+		else
+			itString->second->searchRange(data1.datas, data2.datas, vals, flag);
+	}
+}

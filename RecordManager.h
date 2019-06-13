@@ -14,7 +14,7 @@
 #include "BufferManager.h"
 #include "exception.h"
 extern BufferManager bm;
-
+extern IndexManager im;
 class RecordManager {
 public:
 	//输入：表名
@@ -49,35 +49,30 @@ public:
 	//输出：Table类型对象
 	//功能：返回整张表
 	//异常：如果表不存在，抛出table_not_exist异常
-	Table selectRecord(std::string table_name, std::string result_table_name = "tmp_table");
+	Table selectRecord(std::string tableName, std::string resultTableName = "tmptable");
 	//输入：表名，目标属性，一个Where类型的对象
 	//输出：Table类型对象
 	//功能：返回包含所有目标属性满足Where条件的记录的表
 	//异常：如果表不存在，抛出table_not_exist异常。如果属性不存在，抛出attribute_not_exist异常。
 	//如果Where条件中的两个数据类型不匹配，抛出data_type_conflict异常。
     Table selectRecord(std::string table_name, std::string target_attr, Where where, std::string result_table_name = "tmp_table");
-	//输入：表名，目标属性名
-	//输出：void
-	//功能：对表中已经存在的记录建立索引
-	//异常：如果表不存在，抛出table_not_exist异常。如果属性不存在，抛出attribute_not_exist异常。
-	//void createIndex(IndexManager& index_manager, std::string table_name, std::string target_attr);
 private:
+	//从内存中读取一个tuple
+	Tuple readTuple(char* p, TableInfo attr);
+	//获取一个tuple的长度
+	int getTupleLength(char* p);
 	//insertRecord的辅助函数
 	void insertRecord1(char* p, int offset, int len, const std::vector<data>& v);
 	//deleteRecord的辅助函数
 	char* deleteRecord1(char* p);
-	//从内存中读取一个tuple
-	Tuple readTuple(const char* p, Attribute attr);
-	//获取一个tuple的长度
-	int getTupleLength(char* p);
 	//判断插入的记录是否和其他记录冲突
 	bool isConflict(std::vector<Tuple>& tuples, std::vector<data>& v, int index);
 	//带索引查找
-	void searchWithIndex(std::string table_name, std::string target_attr, Where where, std::vector<int>& block_ids);
+	void searchWithIndex(std::string tableName, std::string attributeName, Where where, std::vector<int>& block_ids);
 	//在块中进行条件删除
-	int conditionDeleteInBlock(std::string table_name, int block_id, Attribute attr, int index, Where where);
+	int conditionDeleteInBlock(std::string table_name, int block_id, TableInfo attr, int index, Where where);
 	//在块中进行条件查询
-	void conditionSelectInBlock(std::string table_name, int block_id, Attribute attr, int index, Where where, std::vector<Tuple>& v);
+	void conditionSelectInBlock(std::string table_name, int block_id, TableInfo attr, int index, Where where, std::vector<Tuple>& v);
 
 	BufferManager bm;
 };
