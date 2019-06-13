@@ -1,7 +1,7 @@
 #include "CatalogManager.h"
 
 CatalogManager::CatalogManager() {
-	
+
 }
 
 void CatalogManager::createTable(const std::string tableName, const std::vector<std::string>& attributeNames, const std::vector<std::string>& types, const std::vector<bool>& unique, const std::string primaryKey) {
@@ -57,8 +57,8 @@ void CatalogManager::createTable(const std::string tableName, const std::vector<
 		char * buf = bm.getPage(TableInfoPath, i);
 		int pageId = bm.getPageId(TableInfoPath, i);
 		for (int j = 0; j < 3; j++) {
-			if (buf[j*1024] == '#' || buf[j*1024] == '\0' || buf[j*1024] == ' ') {
-				strncpy_s(buf+1024*j, PAGESIZE-1024*j, info.c_str(), 1024);
+			if (buf[j * 1024] == '#' || buf[j * 1024] == '\0' || buf[j * 1024] == ' ') {
+				strncpy_s(buf + 1024 * j, PAGESIZE - 1024 * j, info.c_str(), 1024);
 				bm.modifyPage(pageId);
 				return;
 			}
@@ -68,7 +68,7 @@ void CatalogManager::createTable(const std::string tableName, const std::vector<
 	int pageId = bm.getPageId(TableInfoPath, blockNum);
 	strncpy_s(buf, 4096, info.c_str(), 1024);
 	bm.modifyPage(pageId);
-	
+
 }
 
 bool CatalogManager::hasTable(const std::string tableName) {
@@ -81,10 +81,10 @@ bool CatalogManager::hasTable(const std::string tableName) {
 		char * buf = bm.getPage(TableInfoPath, i);
 		std::string check(buf);
 		for (std::size_t j = 0; j < 3; j++) {
-			if (check.size() < 1024*(j+1)) {
+			if (check.size() < 1024 * (j + 1)) {
 				continue;
 			}
-			if (temp == check.substr(1024*j, 32)) {
+			if (temp == check.substr(1024 * j, 32)) {
 				return true;
 			}
 		}
@@ -124,7 +124,7 @@ std::string CatalogManager::num2str(int num, std::size_t length) {
 	for (std::size_t i = str.length(); i < length; i++) {
 		str += '#';
 	}
-		
+
 	return str;
 }
 
@@ -135,13 +135,13 @@ void CatalogManager::dropTable(const std::string tableName) {
 
 	std::string temp = addStr(tableName, 32);
 	int blockNum = getBlockNum(TableInfoPath);
-	
+
 	// 同时要删除indexInfo中对用索引
 	for (int i = 0; i < blockNum; i++) {
 		char * buf = bm.getPage(TableInfoPath, i);
 		std::string check(buf);
 		for (std::size_t j = 0; j < 3; j++) {
-			if (check.size() < 1024*(j+1)) {
+			if (check.size() < 1024 * (j + 1)) {
 				continue;
 			}
 			if (temp == check.substr(1024 * j, 32)) {
@@ -191,11 +191,11 @@ void CatalogManager::createIndex(const std::string tableName, const std::string 
 		int pageId = bm.getPageId(TableInfoPath, i);
 		std::string check(buf);
 		for (std::size_t j = 0; j < 3; j++) {
-			if (check.size() < 1024*(j+1)) {
+			if (check.size() < 1024 * (j + 1)) {
 				continue;
 			}
-			if (temp == check.substr(1024*j, 32)) {
-				std::string t = check.substr(1024 * j+32, 2);
+			if (temp == check.substr(1024 * j, 32)) {
+				std::string t = check.substr(1024 * j + 32, 2);
 				removeChara(t, '#');
 				int attributeNum = atoi(t.c_str());
 				int id;
@@ -224,7 +224,7 @@ void CatalogManager::createIndex(const std::string tableName, const std::string 
 							break;
 						}
 					}
-					
+
 					buf[j * 1024 + 676] += 1; // 因为写的时候最大是7，所以直接加1，如果调整最大值这边也要调整
 				}
 				bm.modifyPage(pageId);
@@ -244,7 +244,7 @@ void CatalogManager::createIndex(const std::string tableName, const std::string 
 				info += addStr(tableName, 32);
 				info += addStr(attributeName, 32);
 				info += addStr(indexName, 32);
-				strncpy_s(buf + 96 * j, PAGESIZE- 96 * j, info.c_str(), 96);
+				strncpy_s(buf + 96 * j, PAGESIZE - 96 * j, info.c_str(), 96);
 				bm.modifyPage(pageId);
 				return;
 			}
@@ -270,10 +270,10 @@ bool CatalogManager::hasAttribute(const std::string tableName, const std::string
 		char * buf = bm.getPage(TableInfoPath, i);
 		std::string check(buf);
 		for (std::size_t j = 0; j < 3; j++) {
-			if (check.size() < 1024*(j+1)) {
+			if (check.size() < 1024 * (j + 1)) {
 				continue;
 			}
-			if (temp == check.substr(1024*j, 32)) {
+			if (temp == check.substr(1024 * j, 32)) {
 				std::string n = check.substr(1024 * j + 32, 2);
 				removeChara(n, '#');
 				int attributeNum = atoi(n.c_str());
@@ -290,7 +290,7 @@ bool CatalogManager::hasAttribute(const std::string tableName, const std::string
 }
 
 void CatalogManager::removeChara(std::string &str, char c) {
-	for (std::size_t i = str.size() - 1; i >= 0 && i < str.size(); i-- ) {
+	for (std::size_t i = str.size() - 1; i >= 0 && i < str.size(); i--) {
 		if (str.at(i) == c) {
 			str.erase(str.begin() + i);
 		}
@@ -304,11 +304,11 @@ bool CatalogManager::attributeHasIndex(const std::string tableName, const std::s
 	for (int i = 0; i < blockNum; i++) {
 		char * buf = bm.getPage(IndexInfoPath, i);
 		std::string check(buf);
-		for (std::size_t j = 0; j < PAGESIZE/96 - 1; j++) {
-			if (check.size() < 96*(j+1)) {
+		for (std::size_t j = 0; j < PAGESIZE / 96 - 1; j++) {
+			if (check.size() < 96 * (j + 1)) {
 				continue;
 			}
-			if (temp == check.substr(96*j, 32)) {
+			if (temp == check.substr(96 * j, 32)) {
 				std::string n = check.substr(96 * j + 32, 32);
 				std::string t = addStr(attributeName, 32);
 				if (n == t) {
@@ -321,17 +321,17 @@ bool CatalogManager::attributeHasIndex(const std::string tableName, const std::s
 	return false;
 }
 
-bool CatalogManager::hasIndex(const std::string indexName){
+bool CatalogManager::hasIndex(const std::string indexName) {
 	int blockNum = getBlockNum(IndexInfoPath);
 	std::string temp = addStr(indexName, 32);
 	for (int i = 0; i < blockNum; i++) {
 		char * buf = bm.getPage(IndexInfoPath, i);
 		std::string check(buf);
 		for (int j = 0; j < PAGESIZE / 96 - 1; j++) {
-			if (check.size() < 96*(j+1)) {
+			if (check.size() < 96 * (j + 1)) {
 				continue;
 			}
-			if (temp == check.substr(96*j+64, 32)) {
+			if (temp == check.substr(96 * j + 64, 32)) {
 				return true;
 			}
 		}
@@ -353,13 +353,13 @@ void CatalogManager::dropIndex(const std::string indexName) {
 		int pageId = bm.getPageId(IndexInfoPath, i);
 		std::string check(buf);
 		for (int j = 0; j < PAGESIZE / 96 - 1; j++) {
-			if (check.size() < 96*(j+1)) {
+			if (check.size() < 96 * (j + 1)) {
 				continue;
 			}
-			if (temp == check.substr(96*j+64, 32)) {
+			if (temp == check.substr(96 * j + 64, 32)) {
 				tableName = check.substr(96 * j, 32);
 				std::string t = addStr("", 96);
-				strncpy_s(buf + 96 * j, PAGESIZE-96*j, t.c_str(), 96);
+				strncpy_s(buf + 96 * j, PAGESIZE - 96 * j, t.c_str(), 96);
 				bm.modifyPage(pageId);
 				break;
 			}
@@ -372,14 +372,14 @@ void CatalogManager::dropIndex(const std::string indexName) {
 		int pageId = bm.getPageId(TableInfoPath, i);
 		std::string check(buf);
 		for (std::size_t j = 0; j < 3; j++) {
-			if (check.size() < 1024*(j+1)) {
+			if (check.size() < 1024 * (j + 1)) {
 				continue;
 			}
-			if (tableName == check.substr(1024*j, 32)) {
-				std::string n = check.substr(1024 * j+676, 1);
+			if (tableName == check.substr(1024 * j, 32)) {
+				std::string n = check.substr(1024 * j + 676, 1);
 				int indexNum = atoi(n.c_str());
 				for (int k = 0; k < indexNum; k++) {
-					if (temp == check.substr(1024 * j+677 + 34 * k, 32)) {
+					if (temp == check.substr(1024 * j + 677 + 34 * k, 32)) {
 						std::string t = addStr("#", 34);
 						for (std::size_t l = 0; l < 34; l++) {
 							buf[j * 1024 + 677 + 34 * k + l] = t.at(l);
@@ -539,7 +539,5 @@ std::string CatalogManager::getType(const std::string tableName, const std::stri
 	}
 	return type;
 }
-
-
 
 

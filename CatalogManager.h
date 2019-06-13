@@ -42,6 +42,7 @@ class CatalogManager {
 
 	private:
 		BufferManager bm;
+		std::string fileName = "TableInfo.txt";
 
 };
 

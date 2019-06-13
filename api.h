@@ -45,7 +45,7 @@ public:
 	//功能：在数据库中插入一个表的元信息
 	//异常：由底层处理
 	//如果已经有相同表名的表存在，则抛出table_exist异常
-	bool createTable(std::string table_name, TableInfo attribute, std::string primary, IndexInfo index);
+	bool createTable(std::string table_name, TableInfo attribute, std::string primary);
 	//输入：表名
 	//输出：是否删除成功
 	//功能：在数据库中删除一个表的元信息，及表内所有记录(删除表文件)

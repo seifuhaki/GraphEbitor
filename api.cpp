@@ -41,7 +41,7 @@ void API::insertRecord(std::string table_name, Tuple& tuple)
 {
 	record.insertRecord(table_name, tuple);
 }
-bool API::createTable(std::string tableName, TableInfo attribute, std::string primary, IndexInfo index)
+bool API::createTable(std::string tableName, TableInfo attribute, std::string primary)
 {
 	record.createTableFile(tableName);
 	catalog.createTable(tableName, attribute.attributeNames, attribute.types, attribute.unique, primary);
