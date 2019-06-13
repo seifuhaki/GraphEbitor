@@ -64,7 +64,6 @@ public:
 	std::string addStr(const std::string &str, std::size_t length);
 	Location btree_find(btree_node<T> *root, T key);
 	std::vector<Location> btree_searchRange(btree_node<T> *root, T key, std::string relation);
-	void BPlusTree<T>::searchRange(T& key1, T& key2, std::vector<int>& vals, int flag);
 
 public:
 	BPlusTree(std::string fileName, int keySize, std::string type);
@@ -665,83 +664,6 @@ std::vector<Location> BPlusTree<T>::btree_searchRange(btree_node<T> *root, T key
 		return results;
 	}
 	throw illegalIdentifier();
-}
-template <class T>
-void BPlusTree<T>::searchRange(T& key1, T& key2, std::vector<int>& vals, int flag)
-{
-	//¿ÕÊ÷
-	if (!root)
-		return;
-
-	if (flag == 2) {
-		searchNodeParse snp1;
-		findToLeaf(root, key1, snp1);
-
-		bool finished = false;
-		Tree pNode = snp1.pNode;
-		unsigned int index = snp1.index;
-
-		do {
-			finished = pNode->findRange2(index, vals);
-			index = 0;
-			if (pNode->nextLeafNode == NULL)
-				break;
-			else
-				pNode = pNode->nextLeaf();
-		} while (!finished);
-	}
-	else if (flag == 1) {
-		searchNodeParse snp2;
-		findToLeaf(root, key2, snp2);
-
-		bool finished = false;
-		Tree pNode = snp2.pNode;
-		unsigned int index = snp2.index;
-
-		do {
-			finished = pNode->findRange2(index, vals);
-			index = 0;
-			if (pNode->nextLeafNode == NULL)
-				break;
-			else
-				pNode = pNode->nextLeaf();
-		} while (!finished);
-	}
-	else {
-		searchNodeParse snp1, snp2;
-		findToLeaf(root, key1, snp1);
-		findToLeaf(root, key2, snp2);
-		bool finished = false;
-		unsigned int index;
-
-		if (key1 <= key2) {
-			Tree pNode = snp1.pNode;
-			index = snp1.index;
-			do {
-				finished = pNode->findRange(index, key2, vals);
-				index = 0;
-				if (pNode->nextLeafNode == NULL)
-					break;
-				else
-					pNode = pNode->nextLeaf();
-			} while (!finished);
-		}
-		else {
-			Tree pNode = snp2.pNode;
-			index = snp2.index;
-			do {
-				finished = pNode->findRange(index, key1, vals);
-				index = 0;
-				if (pNode->nextLeafNode == NULL)
-					break;
-				else
-					pNode = pNode->nextLeaf();
-			} while (!finished);
-		}
-	}
-
-	std::sort(vals.begin(), vals.end());
-	vals.erase(unique(vals.begin(), vals.end()), vals.end());
 }
 #endif
 

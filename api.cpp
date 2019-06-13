@@ -123,8 +123,6 @@ Table API::unionTable(Table &table1, Table &table2, std::string target_attr, Whe
 	std::vector<Tuple> tuple2 = table2.getTuple();
 	result_tuple = tuple1;
 
-	//std::vector<Tuple>().swap(result_tuple);
-
 	int i;
 	TableInfo attr = table1.getAttr();
 	for (i = 0; i < 32; i++)
@@ -158,6 +156,7 @@ Table API::joinTable(Table &table1, Table &table2, std::string target_attr, Wher
 			result_tuple.push_back(tuple2[j]);
 
 	std::sort(result_tuple.begin(), result_tuple.end(), sortcmp);
+	return result_table;
 }
 //用于对vector的sort时排序
 bool sortcmp(const Tuple &tuple1, const Tuple &tuple2)

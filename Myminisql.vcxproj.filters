@@ -24,9 +24,6 @@
     <ClInclude Include="RecordManager.h">
       <Filter>源文件</Filter>
     </ClInclude>
-    <ClInclude Include="Interpreter.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
     <ClInclude Include="BufferManager.h">
       <Filter>源文件</Filter>
     </ClInclude>
@@ -36,10 +33,13 @@
     <ClInclude Include="BPlusTree.h">
       <Filter>源文件</Filter>
     </ClInclude>
-    <ClInclude Include="api.h">
+    <ClInclude Include="basic.h">
       <Filter>源文件</Filter>
     </ClInclude>
-    <ClInclude Include="basic.h">
+    <ClInclude Include="Template.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="api.h">
       <Filter>源文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -53,19 +53,16 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Interpreter.cpp">
+    <ClCompile Include="BufferManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="BufferManager.cpp">
+    <ClCompile Include="basic.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="IndexManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="api.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="basic.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

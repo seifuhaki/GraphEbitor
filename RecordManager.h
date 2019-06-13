@@ -12,9 +12,10 @@
 #include "IndexManager.h"
 #include "CatalogManager.h"
 #include "BufferManager.h"
-#include "exception.h"
+#include "Template.h"
+#include "Exception.h"
 extern BufferManager bm;
-extern IndexManager im;
+
 class RecordManager {
 public:
 	//ÊäÈë£º±íÃû

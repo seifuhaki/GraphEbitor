@@ -18,14 +18,14 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple)
 	CatalogManager cm;
 	//检测表是否存在
 	if (!cm.hasTable(tmpName)){
-		throw(tableNotExists());
+		throw tableNotExists();
 	}
 	TableInfo attr = cm.getTableInfo(tmpName);
 	std::vector<data> v = tuple.getData();
 	//检测插入的元组的各个属性是否合法
 	for (int i = 0; i < v.size(); i++) {
 		if (v[i].type != attr.types[i])
-			throw (tupleTypeConflict());
+			throw tupleTypeConflict();
 	}
 	Table table = selectRecord(tmpName);
 	std::vector<Tuple>& tuples = table.getTuple();
@@ -33,7 +33,7 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple)
 	for (int i = 0; i < attr.unique.size(); i++) {
 		if (attr.unique[i] == true) {
 			if (isConflict(tuples, v, i) == true)
-				throw (uniqueConflict());
+				throw uniqueConflict();
 		}
 	}
 	//异常判断完成
@@ -81,6 +81,17 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple)
 		int pageId = bm.getPageId(tableName, blockNum);
 		bm.modifyPage(pageId);
 	}
+	//构造所有的Index
+	std::vector<std::string> table_name;
+	std::vector<std::string> attributeNames;
+	std::vector<std::string> types;
+	std::vector<IndexInfo> indexinfo = cm.getIndexInfo();
+	for (int i = 0; i < indexinfo.size(); i++) {
+		table_name[i] = indexinfo[i].tableName;
+		attributeNames[i] = indexinfo[i].attributeName;
+		types[i] = indexinfo[i].type;
+	}
+	IndexManager im(table_name, attributeNames, types);
 	for (int i = 0; i < attr.attributeNames.size(); i++) {
 		if (cm.attributeHasIndex(tmpName, attr.attributeNames[i]) == true) {
 			std::string attr_name = attr.attributeNames[i];
@@ -117,6 +128,17 @@ int RecordManager::deleteRecord(std::string tableName)
 		return 0;
 	TableInfo attr = cm.getTableInfo(tmpName);
 	int count = 0;
+	//构造所有的Index
+	std::vector<std::string> table_name;
+	std::vector<std::string> attributeNames;
+	std::vector<std::string> types;
+	std::vector<IndexInfo> indexinfo = cm.getIndexInfo();
+	for (int i = 0; i < indexinfo.size(); i++) {
+		table_name[i] = indexinfo[i].tableName;
+		attributeNames[i] = indexinfo[i].attributeName;
+		types[i] = indexinfo[i].type;
+	}
+	IndexManager im(table_name, attributeNames, types);
 	//遍历所有块
 	for (int i = 0; i < blockNum; i++) {
 		char *p = bm.getPage(tableName,i);
@@ -415,40 +437,62 @@ int RecordManager::conditionDeleteInBlock(std::string tableName, int block_id, T
 }
 //带索引查找
 void RecordManager::searchWithIndex(std::string tableName, std::string attributeName, Where where, std::vector<int>& block_ids) {
-	data tmp_data;
 	std::string file_path = "IndexManager\\" + tableName + "_" + attributeName + ".txt";
-	if (where.relation_character == LESS || where.relation_character == LESS_OR_EQUAL) {
-		if (where.data.type == "int") {
-			tmp_data.type = "int";
-			tmp_data.datai = -INF;
-		}
-		else if (where.data.type == "float") {
-			tmp_data.type = "float";
-			tmp_data.dataf = -INF;
-		}
-		else {
-			tmp_data.type = "string";
-			tmp_data.datas = "";
-		}
-		im.searchRange(file_path, tmp_data, where.data, block_ids);
+	CatalogManager cm;
+	//构造所有的Index
+	std::vector<std::string> table_name;
+	std::vector<std::string> attributeNames;
+	std::vector<std::string> types;
+	std::vector<IndexInfo> indexinfo = cm.getIndexInfo();
+	for (int i = 0; i < indexinfo.size(); i++) {
+		table_name[i] = indexinfo[i].tableName;
+		attributeNames[i] = indexinfo[i].attributeName;
+		types[i] = indexinfo[i].type;
 	}
-	else if (where.relation_character == GREATER || where.relation_character == GREATER_OR_EQUAL) {
-		if (where.data.type == "int") {
-			tmp_data.type = "int";
-			tmp_data.datai = INF;
-		}
-		else if (where.data.type == "float") {
-			tmp_data.type = "float";
-			tmp_data.dataf = INF;
-		}
-		else {
-			tmp_data.type = -2;
-		}
-		im.searchRange(file_path, where.data, tmp_data, block_ids);
+	IndexManager im(table_name, attributeNames, types);
+	std::vector<std::string> relations;
+	switch (where.relation_character) {
+	case LESS: {
+		relations.push_back("<");
+		break;
 	}
-	else {
-		im.searchRange(file_path, where.data, where.data, block_ids);
+	case LESS_OR_EQUAL: {
+		relations.push_back("<=");
+		break;
 	}
+	case EQUAL: {
+		relations.push_back("=");
+		break;
+	}
+	case GREATER: {
+		relations.push_back(">");
+		break;
+	}
+	case GREATER_OR_EQUAL: {
+		relations.push_back(">=");
+		break;
+	}
+	case NOT_EQUAL: {
+		relations.push_back("!=");
+		break;
+	}
+	}
+	std::vector<std::string> searchTables;
+	searchTables.push_back(file_path);
+	std::vector<std::string> searchTypes;
+	searchTypes.push_back(where.data.type);
+	std::vector<std::string> searchKeys;
+	if (where.data.type == "int") 
+		searchKeys.push_back(std::to_string(where.data.datai));
+	else if(where.data.type == "float")
+		searchKeys.push_back(std::to_string(where.data.dataf));
+	else searchKeys.push_back(where.data.datas);
+
+	std::vector<Location> Ls = im.searchRange(searchTables, relations, searchTypes, searchKeys);
+	for (std::size_t i = 0; i < Ls.size(); i++) {
+		std::cout << Ls[i].blockNum << std::endl;
+	}
+
 }
 //在块中进行条件查询
 void RecordManager::conditionSelectInBlock(std::string table_name, int block_id, TableInfo attr, int index, Where where, std::vector<Tuple>& v) {
@@ -512,61 +556,3 @@ bool RecordManager::isConflict(std::vector<Tuple>& tuples, std::vector<data>& v,
 		return false;
 	}
 }
-template <typename T>
-int getDataLength(T data) {
-	std::stringstream stream;
-	stream << data;
-	return stream.str().length();
-}
-template <typename T>
-void copyString(char* p, int& offset, T data) {
-	std::stringstream stream;
-	stream << data;
-	std::string s1 = stream.str();
-	for (int i = 0; i < s1.length(); i++, offset++)
-		p[offset] = s1[i];
-}
-template <typename T>
-bool isSatisfied(T a, T b, WHERE relation) {
-	switch (relation) {
-	case LESS: {
-		if (a < b)
-			return true;
-		else
-			return false;
-	}; break;
-	case LESS_OR_EQUAL: {
-		if (a <= b)
-			return true;
-		else
-			return false;
-	}; break;
-	case EQUAL: {
-		if (a == b)
-			return true;
-		else
-			return false;
-	}; break;
-	case GREATER_OR_EQUAL: {
-		if (a >= b)
-			return true;
-		else
-			return false;
-	}; break;
-	case GREATER: {
-		if (a > b)
-			return true;
-		else
-			return false;
-	}; break;
-	case NOT_EQUAL: {
-		if (a != b)
-			return true;
-		else
-			return false;
-	}; break;
-	}
-}
-
-
-

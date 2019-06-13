@@ -75,7 +75,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
-      <ConformanceMode>true</ConformanceMode>
+      <ConformanceMode>false</ConformanceMode>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -122,8 +122,8 @@
     <ClInclude Include="CatalogManager.h" />
     <ClInclude Include="Exception.h" />
     <ClInclude Include="IndexManager.h" />
-    <ClInclude Include="Interpreter.h" />
     <ClInclude Include="RecordManager.h" />
+    <ClInclude Include="Template.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="api.cpp" />
@@ -131,7 +131,6 @@
     <ClCompile Include="BufferManager.cpp" />
     <ClCompile Include="CatalogManager.cpp" />
     <ClCompile Include="IndexManager.cpp" />
-    <ClCompile Include="Interpreter.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="RecordManager.cpp" />
   </ItemGroup>

@@ -51,7 +51,6 @@ class IndexManager {
 		void insertIndex(std::string file_path, std::string type, std::string key, int blockNum, int offset);
 
 		void deleteIndexByKey(std::string file_path, std::string type, std::string key);
-		void searchRange(std::string file_path, data data1, data data2, std::vector<int>& vals);
 		std::vector<Location> searchRange(const std::vector<std::string> file_paths, const std::vector<std::string> relations, const std::vector<std::string> types, const std::vector<std::string> keys);
 		void removeChara(std::string &str, char c);
 
