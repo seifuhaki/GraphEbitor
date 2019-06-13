@@ -45,7 +45,7 @@ public:
 	//功能：在数据库中插入一个表的元信息
 	//异常：由底层处理
 	//如果已经有相同表名的表存在，则抛出table_exist异常
-	bool createTable(std::string table_name, Attribute attribute, int primary, Index index);
+	bool createTable(std::string table_name, TableInfo attribute, std::string primary, IndexInfo index);
 	//输入：表名
 	//输出：是否删除成功
 	//功能：在数据库中删除一个表的元信息，及表内所有记录(删除表文件)
@@ -67,7 +67,7 @@ public:
 	//如果表不存在，抛出table_not_exist异常
 	//如果对应属性不存在，抛出attribute_not_exist异常
 	//如果对应属性没有索引，抛出index_not_exist异常
-	bool dropIndex(std::string table_name, std::string index_name);
+	bool dropIndex(std::string tableName, std::string indexName, std::string attrName);
 private:
 	//私有函数，用于多条件查询时的and条件合并
 	Table unionTable(Table &table1, Table &table2, std::string target_attr, Where where);
@@ -77,7 +77,6 @@ private:
 private:
 	RecordManager record;
 	CatalogManager catalog;
-	IndexManager im;
 };
 
 //用于对vector的sort时排序

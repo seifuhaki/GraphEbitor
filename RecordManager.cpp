@@ -81,6 +81,24 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple)
 		int pageId = bm.getPageId(tableName, blockNum);
 		bm.modifyPage(pageId);
 	}
+	for (int i = 0; i < attr.attributeNames.size(); i++) {
+		if (cm.attributeHasIndex(tmpName, attr.attributeNames[i]) == true) {
+			std::string attr_name = attr.attributeNames[i];
+			std::string file_path = "IndexManager\\" + tmpName + "_" + attr.attributeNames[i] + ".txt";
+			std::vector<data> d = tuple.getData();
+			if (attr.types[i] == "int") {
+				std::string key = std::to_string(d[i].datai);
+				im.insertIndex(file_path, attr.types[i], key, blockOffset, i);
+			}
+			else if (attr.types[i] == "float") {
+				std::string key = std::to_string(d[i].dataf);
+				im.insertIndex(file_path, attr.types[i], key, blockOffset, i);
+			}
+			else {
+				im.insertIndex(file_path, attr.types[i], d[i].datas, blockOffset, i);
+			}
+		}
+	}
 }
 
 int RecordManager::deleteRecord(std::string tableName)
@@ -104,6 +122,25 @@ int RecordManager::deleteRecord(std::string tableName)
 		char *p = bm.getPage(tableName,i);
 		char *t = p;
 		while (*p != '\0'&&p < t + PAGESIZE) {
+			Tuple tuple = readTuple(p, attr);
+			for (int j = 0; j < attr.attributeNames.size(); j++) {
+				if (cm.attributeHasIndex(tmpName, attr.attributeNames[i]) == true) {
+					std::string attr_name = attr.attributeNames[i];
+					std::string file_path = "IndexManager\\" + tmpName + "_" + attr.attributeNames[i] + ".txt";
+					std::vector<data> d = tuple.getData();
+					if (attr.types[i] == "int") {
+						std::string key = std::to_string(d[i].datai);
+						im.deleteIndexByKey(file_path, attr.types[i], key);
+					}
+					else if (attr.types[i] == "float") {
+						std::string key = std::to_string(d[i].dataf);
+						im.deleteIndexByKey(file_path, attr.types[i], key);
+					}
+					else {
+						im.deleteIndexByKey(file_path, attr.types[i], d[i].datas);
+					}
+				}
+			}
 			//É¾³ý¼ÇÂ¼
 			p = deleteRecord1(p);
 			count++;
@@ -114,7 +151,7 @@ int RecordManager::deleteRecord(std::string tableName)
 	return count;
 }
 
-int RecordManager::deleteRecord(std::string tableName, std::string AttributeName, std::string target_attr,Where where)
+int RecordManager::deleteRecord(std::string tableName, std::string target_attr,Where where)
 {
 	std::string tmpName = tableName;
 	tableName = tableName + ".txt";
