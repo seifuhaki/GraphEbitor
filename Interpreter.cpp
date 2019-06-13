@@ -1,17 +1,17 @@
-﻿#include "Interpreter.h"
+#include "Interpreter.h"
 
-interpreter::interpreter() {
+Interpreter::Interpreter() {
 	this->instruction.clear();
 	this->instructionList.clear();
 	this->ifQuit = false;
 	this->errorOccur = false;
 }
 
-bool interpreter::quit() {
+bool Interpreter::quit() {
 	return this->ifQuit;
 }
 
-void interpreter::getInstruction() {
+void Interpreter::getInstruction() {
 	this->errorOccur = false;
 	std::string currentLine;
 	char buffer[256];
@@ -40,7 +40,7 @@ void interpreter::getInstruction() {
 	}
 }
 
-void interpreter::executeInstruction() {
+void Interpreter::executeInstruction() {
 	// normalize
 	this->errorOccur = false;
 	this->instructionList.clear();
@@ -136,7 +136,7 @@ void interpreter::executeInstruction() {
 	}
 }
 
-void interpreter::splitString(const std::string& s, std::vector<std::string>& v, const std::string& c) {
+void Interpreter::splitString(const std::string& s, std::vector<std::string>& v, const std::string& c) {
 	std::string::size_type pos1, pos2;
 	pos2 = s.find(c);
 	pos1 = 0;
@@ -152,7 +152,7 @@ void interpreter::splitString(const std::string& s, std::vector<std::string>& v,
 	}
 }
 
-void interpreter::execfile() {
+void Interpreter::execfile() {
 	char buffer[256];
 	std::ifstream ifile;
 	std::string currentLine;
@@ -206,7 +206,7 @@ void interpreter::execfile() {
 
 }
 
-void interpreter::deleteFrom() {
+void Interpreter::deleteFrom() {
 	std::string tableName;
 	std::string attributeName;
 	std::string relation;
@@ -219,9 +219,7 @@ void interpreter::deleteFrom() {
 	tableName = this->instructionList[2];
 
 	if (this->instructionList.size() == 3) {
-		API.deleteRecord(tableName);
-		//delete all record
-		std::cout << "-> SUCCESS" << std::endl;
+		api.deleteAllRecord(tableName);
 	}
 	else if (this->instructionList.size() == 7) {
 		if (this->instructionList[3] != "where") {
@@ -233,10 +231,8 @@ void interpreter::deleteFrom() {
 		if (relation != "=" && relation != "<>" && relation != "<" && relation != ">" && relation != "<=" && relation != ">=") {
 			throw syntaxError();
 		}
-
-		API.deleteRecord(tableName, attributeName, relation, value);
-		//delete record
-		std::cout << "-> SUCCESS" << std::endl;
+		api.deleteRecord(tableName, attributeName, relation, value)
+		// delete from ... where ... (API)
 	}
 	else {
 		throw syntaxError();
@@ -244,7 +240,7 @@ void interpreter::deleteFrom() {
 
 }
 
-void interpreter::insertInto() {	// notice that there is no space in (...), values are supposed to be splitted with ','
+void Interpreter::insertInto() {	// notice that there is no space in (...), values are supposed to be splitted with ','
 	std::string tableName;
 	std::vector<std::string> values;
 	std::size_t last;
@@ -273,12 +269,12 @@ void interpreter::insertInto() {	// notice that there is no space in (...), valu
 		splitString(this->instructionList[i], values, ",");	// int, float, char in string type, char[] are passed with ''
 	}
 
+	api.insertRecord(tableName, values)
 	
-	API.insertRecord(tableName, values);
 	// insert into ... values ... (API)
 }
 
-void interpreter::selectAllFrom() {
+void Interpreter::selectAllFrom() {
 	std::string tableName;
 	std::vector<std::string> attributeNames;
 	std::vector<std::string> relations;
@@ -293,7 +289,7 @@ void interpreter::selectAllFrom() {
 	tableName = this->instructionList[3];
 
 	if (this->instructionList.size() == 4) {
-		API.selectRecord(tableName);
+		api.selectAllRecord(tableName)
 		// select * from ... (API)
 		return;
 	}
@@ -340,13 +336,12 @@ void interpreter::selectAllFrom() {
 			index++;
 		}
 	}
-	API.selectRecord(tableName, attributeNames, relations, values);
-	//这里不确定逻辑是否正确
+	api.selectRecord(tableName, attributeNames, relations, values)
 	// select * from ... where ... and ... (API)
 
 }
 
-void interpreter::createIndex() {
+void Interpreter::createIndex() {
 	std::string indexName;
 	std::string tableName;
 	std::string attributeName;
@@ -384,12 +379,12 @@ void interpreter::createIndex() {
 
 	attributeName = this->instructionList[5];
 
-	API.createIndex(tableName, indexName, attributeName);
+	api.createIndex(tableName, attributeName, indexName)
 	// create index ... on ... (...) (API)
 
 }
 
-void interpreter::dropTable() {
+void Interpreter::dropTable() {
 	std::string tableName;
 
 	if (this->instructionList.size() < 3) {
@@ -398,11 +393,11 @@ void interpreter::dropTable() {
 
 	tableName = this->instructionList[2];
 
-	API.dropTable(tableName);
+	dropTable(tableName)
 	// drop table ... (API)
 }
 
-void interpreter::dropIndex() {
+void Interpreter::dropIndex() {
 	std::string indexName;
 
 	if (this->instructionList.size() < 3) {
@@ -411,12 +406,12 @@ void interpreter::dropIndex() {
 
 	indexName = this->instructionList[2];
 
-	API.dropIndex(indexName);
+	api.dropIndex(indexName)
 	// drop index ... (API)
 
 }
 
-void interpreter::createTable() {
+void Interpreter::createTable() {
 	std::string tableName;
 	std::size_t last;
 	std::vector<std::string> attributeNames;
@@ -584,8 +579,7 @@ void interpreter::createTable() {
 
 	primaryKey = this->instructionList[index];
 
-	API.createTable(tableName, attributeNames, types, unique, primaryKey, token);
-	//不确定
+	api.createTable(tableName, attributeNames, types, unique, primaryKey)
 	/*	create table ... (
 			attributeName type ifunique,
 			...
