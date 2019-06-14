@@ -540,4 +540,34 @@ std::string CatalogManager::getType(const std::string tableName, const std::stri
 	return type;
 }
 
+IndexInfo CatalogManager::getIndexInfo(std::string indexName) {
+	if (!hasIndex(indexName)) {
+		throw indexNotExist();
+	}
+	IndexInfo result;
+	int blockNum = getBlockNum(IndexInfoPath);
+	std::string temp = addStr(indexName, 32);
+	for (int i = 0; i < blockNum; i++) {
+		char * buf = bm.getPage(IndexInfoPath, i);
+		std::string check(buf);
+		for (int j = 0; j < PAGESIZE / 96 - 1; j++) {
+			if (check.size() < 96 * (j + 1)) {
+				continue;
+			}
+			if (temp == check.substr(96 * j + 64, 32)) {
+				std::string tn = check.substr(96 * j, 32);
+				std::string an = check.substr(96 * j + 32, 32);
+				std::string in = check.substr(96 * j + 64, 32);
+				removeChara(tn, '#');
+				removeChara(an, '#');
+				removeChara(in, '#');
+				result.attributeName = an;
+				result.indexName = in;
+				result.tableName = tn;
+				result.type = getType(tn, an);
+			}
+		}
+	}
+	return result;
+}
 
