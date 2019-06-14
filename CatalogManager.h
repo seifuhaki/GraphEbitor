@@ -38,7 +38,7 @@ class CatalogManager {
 		std::vector<IndexInfo> getIndexInfo();
 		TableInfo getTableInfo(const std::string tableName);
 		std::string getType(const std::string tableName, const std::string attributeName);
-		
+		IndexInfo getIndexInfo(std::string indexName);
 
 	private:
 		BufferManager bm;
