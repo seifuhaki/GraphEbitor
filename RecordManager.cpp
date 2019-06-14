@@ -16,27 +16,27 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple)
 	std::string tmpName = tableName;
 	tableName = tableName + ".txt";
 	CatalogManager cm;
-	//¼ì²â±íÊÇ·ñ´æÔÚ
+	//æ£€æµ‹è¡¨æ˜¯å¦å­˜åœ¨
 	if (!cm.hasTable(tmpName)){
 		throw tableNotExists();
 	}
 	TableInfo attr = cm.getTableInfo(tmpName);
 	std::vector<data> v = tuple.getData();
-	//¼ì²â²åÈëµÄÔª×éµÄ¸÷¸öÊôĞÔÊÇ·ñºÏ·¨
+	//æ£€æµ‹æ’å…¥çš„å…ƒç»„çš„å„ä¸ªå±æ€§æ˜¯å¦åˆæ³•
 	for (int i = 0; i < v.size(); i++) {
-		if (cm.getType(tableName,attr.attributeNames[i]) != attr.types[i])
+		if (cm.getType(tmpName,attr.attributeNames[i]) != attr.types[i])
 			throw tupleTypeConflict();
 	}
 	Table table = selectRecord(tmpName);
 	std::vector<Tuple>& tuples = table.getTuple();
-	//¼ì²âÊÇ·ñ´æÔÚunique³åÍ»
+	//æ£€æµ‹æ˜¯å¦å­˜åœ¨uniqueå†²çª
 	for (int i = 0; i < attr.unique.size(); i++) {
 		if (attr.unique[i] == true) {
 			if (isConflict(tuples, v, i) == true)
 				throw uniqueConflict();
 		}
 	}
-	//Òì³£ÅĞ¶ÏÍê³É
+	//å¼‚å¸¸åˆ¤æ–­å®Œæˆ
 	int blockNum = cm.getBlockNum(tableName);
 	if (blockNum <= 0)blockNum = 1;
 	char* p = bm.getPage(tableName, blockNum - 1);
@@ -44,7 +44,7 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple)
 	for (i = 0; p[i] != '\0'&&i < PAGESIZE; i++);
 	int j;
 	int len = 0;
-	//¼ÆËãTupleµÄ³¤¶È
+	//è®¡ç®—Tupleçš„é•¿åº¦
 	for (j = 0; j < v.size(); j++) {
 		data d = v[j];
 		if(d.type == "int") {
@@ -60,28 +60,28 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple)
 		}
 	}
 	len += v.size() + 7;
-	int blockOffset;//×îÖÕ¼ÇÂ¼Ëù²åÈëµÄ¿éµÄ±àºÅ
-	//Èç¹ûÊ£ÓàµÄ¿Õ¼ä×ã¹»²åÈë¸Ãtuple
+	int blockOffset;//æœ€ç»ˆè®°å½•æ‰€æ’å…¥çš„å—çš„ç¼–å·
+	//å¦‚æœå‰©ä½™çš„ç©ºé—´è¶³å¤Ÿæ’å…¥è¯¥tuple
 	if (PAGESIZE - i >= len) {
 		blockOffset = blockNum - 1;
-		//²åÈë¸ÃÔª×é
+		//æ’å…¥è¯¥å…ƒç»„
 		insertRecord1(p, i, len, v);
-		//Ğ´»Ø±íÎÄ¼ş
+		//å†™å›è¡¨æ–‡ä»¶
 		int pageId = bm.getPageId(tableName, blockNum - 1);
 		bm.modifyPage(pageId);
 	}
-	//Èç¹ûÊ£ÓàµÄ¿Õ¼ä²»¹»
+	//å¦‚æœå‰©ä½™çš„ç©ºé—´ä¸å¤Ÿ
 	else {
 		blockOffset = blockNum;
-		//ĞÂÔöÒ»¸ö¿é
+		//æ–°å¢ä¸€ä¸ªå—
 		char* p = bm.getPage(tableName, blockNum);
-		//ÔÚĞÂÔöµÄ¿éÖĞ²åÈë¸ÃÔª×é
+		//åœ¨æ–°å¢çš„å—ä¸­æ’å…¥è¯¥å…ƒç»„
 		insertRecord1(p, 0, len, v);
-		//Ğ´»Ø±íÎÄ¼ş
+		//å†™å›è¡¨æ–‡ä»¶
 		int pageId = bm.getPageId(tableName, blockNum);
 		bm.modifyPage(pageId);
 	}
-	//¹¹ÔìËùÓĞµÄIndex
+	//æ„é€ æ‰€æœ‰çš„Index
 	std::vector<std::string> table_name;
 	std::vector<std::string> attributeNames;
 	std::vector<std::string> types;
@@ -117,18 +117,18 @@ int RecordManager::deleteRecord(std::string tableName)
 	std::string tmpName = tableName;
 	tableName = tableName + ".txt";
 	CatalogManager cm;
-	//¼ì²â±íÊÇ·ñ´æÔÚ
+	//æ£€æµ‹è¡¨æ˜¯å¦å­˜åœ¨
 	if (!cm.hasTable(tmpName)) {
 		throw tableNotExists();
 	}
 	
 	int blockNum = cm.getBlockNum(tableName);
-	//±íÎÄ¼ş´óĞ¡Îª0Ê±Ö±½Ó·µ»Ø
+	//è¡¨æ–‡ä»¶å¤§å°ä¸º0æ—¶ç›´æ¥è¿”å›
 	if(blockNum <= 0)
 		return 0;
 	TableInfo attr = cm.getTableInfo(tmpName);
 	int count = 0;
-	//¹¹ÔìËùÓĞµÄIndex
+	//æ„é€ æ‰€æœ‰çš„Index
 	std::vector<std::string> table_name;
 	std::vector<std::string> attributeNames;
 	std::vector<std::string> types;
@@ -139,7 +139,7 @@ int RecordManager::deleteRecord(std::string tableName)
 		types[i] = indexinfo[i].type;
 	}
 	IndexManager im(table_name, attributeNames, types);
-	//±éÀúËùÓĞ¿é
+	//éå†æ‰€æœ‰å—
 	for (int i = 0; i < blockNum; i++) {
 		char *p = bm.getPage(tableName,i);
 		char *t = p;
@@ -163,7 +163,7 @@ int RecordManager::deleteRecord(std::string tableName)
 					}
 				}
 			}
-			//É¾³ı¼ÇÂ¼
+			//åˆ é™¤è®°å½•
 			p = deleteRecord1(p);
 			count++;
 		}
@@ -183,7 +183,7 @@ int RecordManager::deleteRecord(std::string tableName, std::string target_attr,W
 	}
 	TableInfo attr = cm.getTableInfo(tmpName);
 	int index = -1;
-	bool flag = false;//ÅĞ¶ÏÊÇ·ñ´æÔÚË÷Òı
+	bool flag = false;//åˆ¤æ–­æ˜¯å¦å­˜åœ¨ç´¢å¼•
 	for (int i = 0; i < attr.attributeNames.size(); i++) {
 		if (attr.attributeNames[i] == target_attr) {
 			index = i;
@@ -200,9 +200,9 @@ int RecordManager::deleteRecord(std::string tableName, std::string target_attr,W
 	}
 	int count = 0;
 	if (flag == true && where.relation_character != NOT_EQUAL) {
-		//ÓĞË÷Òı£¬Í¨¹ıË÷Òı»ñµÃ¿éºÅ
+		//æœ‰ç´¢å¼•ï¼Œé€šè¿‡ç´¢å¼•è·å¾—å—å·
 		std::vector<int> block_ids;
-		//Í¨¹ıË÷Òı»ñÈ¡Âú×ãÌõ¼şµÄ¼ÇÂ¼ËùÔÚµÄ¿éºÅ
+		//é€šè¿‡ç´¢å¼•è·å–æ»¡è¶³æ¡ä»¶çš„è®°å½•æ‰€åœ¨çš„å—å·
 		searchWithIndex(tmpName, target_attr, where, block_ids);
 		for (int i = 0; i < block_ids.size(); i++) {
 			count += conditionDeleteInBlock(tmpName, block_ids[i], attr, index, where);
@@ -232,15 +232,15 @@ Table RecordManager::selectRecord(std::string tableName, std::string resultTable
 	TableInfo attr = cm.getTableInfo(tmpName);
 	Table table(resultTableName, attr);
 	std::vector<Tuple> &v = table.getTuple();
-	//±éÀúËùÓĞ¿é
+	//éå†æ‰€æœ‰å—
 	for (int i = 0; i < blockNum; i++) {
 		char *p = bm.getPage(tableName, i);
 		char *t = p;
-		//±éÀú¿éÖĞËùÓĞ¼ÇÂ¼
+		//éå†å—ä¸­æ‰€æœ‰è®°å½•
 		while (*p != '\0' && p < t + PAGESIZE) {
-			//¶ÁÈ¡¼ÇÂ¼
+			//è¯»å–è®°å½•
 			Tuple tuple = readTuple(p, attr);
-			//Èç¹û¼ÇÂ¼Ã»ÓĞ±»É¾³ı£¬½«ÆäÌí¼Óµ½tableÖĞ
+			//å¦‚æœè®°å½•æ²¡æœ‰è¢«åˆ é™¤ï¼Œå°†å…¶æ·»åŠ åˆ°tableä¸­
 			if (tuple.isDeleted() == false)
 				v.push_back(tuple);
 			int len = getTupleLength(p);
@@ -254,14 +254,14 @@ Table RecordManager::selectRecord(std::string tableName, std::string target_attr
 	std::string tmpName = tableName;
 	tableName = tableName + ".txt";
 	CatalogManager cm;
-	//¼ì²â±íÊÇ·ñ´æÔÚ
+	//æ£€æµ‹è¡¨æ˜¯å¦å­˜åœ¨
 	if (!cm.hasTable(tmpName)) {
 		throw tableNotExists();
 	}
 	TableInfo attr = cm.getTableInfo(tmpName);
 	int index = -1;
 	bool flag = false;
-	//»ñÈ¡Ä¿±êÊôĞÔµÄ±àºÅ
+	//è·å–ç›®æ ‡å±æ€§çš„ç¼–å·
 	for (int i = 0; i < attr.attributeNames.size(); i++) {
 		if (attr.attributeNames[i] == target_attr) {
 			index = i;
@@ -270,42 +270,42 @@ Table RecordManager::selectRecord(std::string tableName, std::string target_attr
 			break;
 		}
 	}
-	//Ä¿±êÊôĞÔ²»´æÔÚ£¬Å×³öÒì³£
+	//ç›®æ ‡å±æ€§ä¸å­˜åœ¨ï¼ŒæŠ›å‡ºå¼‚å¸¸
 	if (index == -1) {
 		throw attributeNotExists();
 	}
-	//whereÌõ¼şÖĞµÄÁ½¸öÊı¾İµÄÀàĞÍ²»Æ¥Åä£¬Å×³öÒì³£
+	//whereæ¡ä»¶ä¸­çš„ä¸¤ä¸ªæ•°æ®çš„ç±»å‹ä¸åŒ¹é…ï¼ŒæŠ›å‡ºå¼‚å¸¸
 	else if (attr.types[index] != where.data.type) {
 		throw dataTypeConflict();
 	}
 
-	//Òì³£¼ì²âÍê³É
+	//å¼‚å¸¸æ£€æµ‹å®Œæˆ
 
-	//¹¹½¨table
+	//æ„å»ºtable
 	Table table(result_table_name, attr);
 	std::vector<Tuple>& v = table.getTuple();
 	if (flag == true && where.relation_character != NOT_EQUAL) {
 		std::vector<int> block_ids;
-		//Ê¹ÓÃË÷Òı»ñÈ¡Âú×ãÌõ¼şµÄ¼ÇÂ¼ËùÔÚ¿éºÅ
+		//ä½¿ç”¨ç´¢å¼•è·å–æ»¡è¶³æ¡ä»¶çš„è®°å½•æ‰€åœ¨å—å·
 		searchWithIndex(tmpName, target_attr, where, block_ids);
 		for (int i = 0; i < block_ids.size(); i++) {
 			conditionSelectInBlock(tmpName, block_ids[i], attr, index, where, v);
 		}
 	}
 	else {
-		//»ñÈ¡ÎÄ¼şËùÕ¼µÄ¿éµÄÊıÁ¿
+		//è·å–æ–‡ä»¶æ‰€å çš„å—çš„æ•°é‡
 		int block_num = cm.getBlockNum(tableName);
-		//´¦ÀíÎÄ¼ş´óĞ¡Îª0µÄÌØÊâÇé¿ö
+		//å¤„ç†æ–‡ä»¶å¤§å°ä¸º0çš„ç‰¹æ®Šæƒ…å†µ
 		if (block_num <= 0)
 			block_num = 1;
-		//±éÀúËùÓĞ¿é
+		//éå†æ‰€æœ‰å—
 		for (int i = 0; i < block_num; i++) {
 			conditionSelectInBlock(tmpName, i, attr, index, where, v);
 		}
 	}
 	return table;
 }
-//InsertµÄ¸¨Öúº¯Êı
+//Insertçš„è¾…åŠ©å‡½æ•°
 void RecordManager::insertRecord1(char* p, int offset, int len, const std::vector<data>& v)
 {
 	std::stringstream stream;
@@ -333,14 +333,14 @@ void RecordManager::insertRecord1(char* p, int offset, int len, const std::vecto
 	p[offset + 1] = '0';
 	p[offset + 2] = '\n';
 }
-//DeleteµÄ¸¨Öúº¯Êı
+//Deleteçš„è¾…åŠ©å‡½æ•°
 char* RecordManager::deleteRecord1(char* p) {
 	int len = getTupleLength(p);
 	p = p + len;
 	*(p - 2) = '1';
 	return p;
 }
-//´ÓÄÚ´æÖĞ¶ÁÈ¡Ò»¸ötuple
+//ä»å†…å­˜ä¸­è¯»å–ä¸€ä¸ªtuple
 Tuple RecordManager::readTuple(char* p, TableInfo attr) {
 	Tuple tuple;
 	p = p + 5;
@@ -372,7 +372,7 @@ Tuple RecordManager::readTuple(char* p, TableInfo attr) {
 		tuple.setDeleted();
 	return tuple;
 }
-//»ñÈ¡Ò»¸ötupleµÄ³¤¶È
+//è·å–ä¸€ä¸ªtupleçš„é•¿åº¦
 int RecordManager::getTupleLength(char* p) {
 	char tmp[10];
 	int i;
@@ -383,27 +383,27 @@ int RecordManager::getTupleLength(char* p) {
 	int len = stoi(s);
 	return len;
 }
-//ÔÚ¿éÖĞ½øĞĞÌõ¼şÉ¾³ı
+//åœ¨å—ä¸­è¿›è¡Œæ¡ä»¶åˆ é™¤
 int RecordManager::conditionDeleteInBlock(std::string tableName, int block_id, TableInfo attr, int index, Where where) {
-	//»ñÈ¡µ±Ç°¿éµÄ¾ä±ú
-	tableName = tableName + ".txt";//ĞÂÔö
+	//è·å–å½“å‰å—çš„å¥æŸ„
+	tableName = tableName + ".txt";//æ–°å¢
 	char* p = bm.getPage(tableName, block_id);
 	char* t = p;
 	int count = 0;
-	//±éÀú¿éÖĞËùÓĞ¼ÇÂ¼
+	//éå†å—ä¸­æ‰€æœ‰è®°å½•
 	while (*p != '\0' && p < t + PAGESIZE) {
-		//¶ÁÈ¡¼ÇÂ¼
+		//è¯»å–è®°å½•
 		Tuple tuple = readTuple(p, attr);
 		std::vector<data> d = tuple.getData();
-		//¸ù¾İÊôĞÔÀàĞÍÖ´ĞĞ²»Í¬²Ù×÷
+		//æ ¹æ®å±æ€§ç±»å‹æ‰§è¡Œä¸åŒæ“ä½œ
 		if(attr.types[index] == "int") {
-			//Èç¹ûÂú×ãwhereÌõ¼ş
+			//å¦‚æœæ»¡è¶³whereæ¡ä»¶
 			if (isSatisfied(d[index].datai, where.data.datai, where.relation_character) == true) {
-				//½«¼ÇÂ¼É¾³ı
+				//å°†è®°å½•åˆ é™¤
 				p = deleteRecord1(p);
 				count++;
 			}
-			//Èç¹û²»Âú×ãwhereÌõ¼ş£¬Ìø¹ı¸Ã¼ÇÂ¼
+			//å¦‚æœä¸æ»¡è¶³whereæ¡ä»¶ï¼Œè·³è¿‡è¯¥è®°å½•
 			else {
 				int len = getTupleLength(p);
 				p = p + len;
@@ -430,16 +430,16 @@ int RecordManager::conditionDeleteInBlock(std::string tableName, int block_id, T
 			}
 		}
 	}
-	//½«µ±Ç°¿éĞ´»ØÎÄ¼ş
+	//å°†å½“å‰å—å†™å›æ–‡ä»¶
 	int page_id = bm.getPageId(tableName, block_id);
 	bm.modifyPage(page_id);
 	return count;
 }
-//´øË÷Òı²éÕÒ
+//å¸¦ç´¢å¼•æŸ¥æ‰¾
 void RecordManager::searchWithIndex(std::string tableName, std::string attributeName, Where where, std::vector<int>& block_ids) {
 	std::string file_path = "IndexManager\\" + tableName + "_" + attributeName + ".txt";
 	CatalogManager cm;
-	//¹¹ÔìËùÓĞµÄIndex
+	//æ„é€ æ‰€æœ‰çš„Index
 	std::vector<std::string> table_name;
 	std::vector<std::string> attributeNames;
 	std::vector<std::string> types;
@@ -494,38 +494,38 @@ void RecordManager::searchWithIndex(std::string tableName, std::string attribute
 	}
 
 }
-//ÔÚ¿éÖĞ½øĞĞÌõ¼ş²éÑ¯
+//åœ¨å—ä¸­è¿›è¡Œæ¡ä»¶æŸ¥è¯¢
 void RecordManager::conditionSelectInBlock(std::string table_name, int block_id, TableInfo attr, int index, Where where, std::vector<Tuple>& v) {
-	//»ñÈ¡µ±Ç°¿éµÄ¾ä±ú
-	table_name = table_name + ".txt";//ĞÂÔö
+	//è·å–å½“å‰å—çš„å¥æŸ„
+	table_name = table_name + ".txt";//æ–°å¢
 	char* p = bm.getPage(table_name, block_id);
 	char* t = p;
-	//±éÀúËùÓĞ¼ÇÂ¼
+	//éå†æ‰€æœ‰è®°å½•
 	while (*p != '\0' && p < t + PAGESIZE) {
-		//¶ÁÈ¡¼ÇÂ¼
+		//è¯»å–è®°å½•
 		Tuple tuple = readTuple(p, attr);
-		//Èç¹û¼ÇÂ¼ÒÑ±»É¾³ı£¬Ìø¹ı¸Ã¼ÇÂ¼
+		//å¦‚æœè®°å½•å·²è¢«åˆ é™¤ï¼Œè·³è¿‡è¯¥è®°å½•
 		if (tuple.isDeleted() == true) {
 			int len = getTupleLength(p);
 			p = p + len;
 			continue;
 		}
 		std::vector<data> d = tuple.getData();
-		//¸ù¾İÊôĞÔÀàĞÍÑ¡Ôñ
+		//æ ¹æ®å±æ€§ç±»å‹é€‰æ‹©
 		if (attr.types[index] == "int") {
-			//Âú×ãÌõ¼ş£¬Ôò½«¸ÃÔª×éÌí¼Óµ½table
+			//æ»¡è¶³æ¡ä»¶ï¼Œåˆ™å°†è¯¥å…ƒç»„æ·»åŠ åˆ°table
 			if (isSatisfied(d[index].datai, where.data.datai, where.relation_character) == true) {
 				v.push_back(tuple);
 			}
-			//²»Âú×ãÌõ¼ş£¬Ìø¹ı¸Ã¼ÇÂ¼
+			//ä¸æ»¡è¶³æ¡ä»¶ï¼Œè·³è¿‡è¯¥è®°å½•
 		}
-			//Í¬case1
+			//åŒcase1
 		else if(attr.types[index] == "float"){
 			if (isSatisfied(d[index].dataf, where.data.dataf, where.relation_character) == true) {
 				v.push_back(tuple);
 			}
 		}
-			//Í¬case1
+			//åŒcase1
 		else {
 			if (isSatisfied(d[index].datas, where.data.datas, where.relation_character) == true) {
 				v.push_back(tuple);
@@ -535,7 +535,7 @@ void RecordManager::conditionSelectInBlock(std::string table_name, int block_id,
 		p = p + len;
 	}
 }
-//ÅĞ¶Ï²åÈëµÄ¼ÇÂ¼ÊÇ·ñºÍÆäËû¼ÇÂ¼³åÍ»
+//åˆ¤æ–­æ’å…¥çš„è®°å½•æ˜¯å¦å’Œå…¶ä»–è®°å½•å†²çª
 bool RecordManager::isConflict(std::vector<Tuple>& tuples, std::vector<data>& v, int index) {
 	for (int i = 0; i < tuples.size(); i++) {
 		if (tuples[i].isDeleted() == true)
