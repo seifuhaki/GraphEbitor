@@ -138,13 +138,13 @@ bool API::dropIndex(std::string indexName)
 		types[i] = indexinfo[i].type;
 	}
 	IndexManager index(table_name, attributeNames, types);
-	//给定indexName，获取tableName和attrName
-	std::string file_path = "IndexManager\\" + tableName + "_" + attrName + ".txt";
+	IndexInfo indexinfo_ = catalog.getIndexInfo(indexName);
+	std::string file_path = "IndexManager\\" + indexinfo_.tableName + "_" + indexinfo_.attributeName + ".txt";
 	std::string type;
 
-	TableInfo attr = catalog.getTableInfo(tableName);
+	TableInfo attr = catalog.getTableInfo(indexinfo_.tableName);
 	for (int i = 0; i < attr.attributeNames.size(); i++) {
-		if (attr.attributeNames[i] == attrName) {
+		if (attr.attributeNames[i] == indexinfo_.attributeName) {
 			type = attr.types[i];
 			break;
 		}
@@ -152,7 +152,7 @@ bool API::dropIndex(std::string indexName)
 	index.dropIndex(file_path, type);
 	catalog.dropIndex(indexName);
 
-	file_path = "IndexManager\\" + tableName + "_" + attrName + ".txt";
+	file_path = "IndexManager\\" + indexinfo_.tableName + "_" + indexinfo_.attributeName + ".txt";
 	remove(file_path.c_str());
 	return true;
 }

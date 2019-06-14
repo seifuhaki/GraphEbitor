@@ -21,8 +21,8 @@ int main() {
 	data_in.type = "string";
 	data_in.datas = "mysql";
 	tuple.addData(data_in);
-	//api.createTable(table.getTitle(), table.attr_, primary);
-	api.insertRecord(tableName, tuple);
+	api.createTable(table.getTitle(), table.attr_, primary);
+	//api.insertRecord(tableName, tuple);
 	int a;
 	std::cin >> a;
 	return 0;
