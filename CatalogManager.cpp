@@ -443,7 +443,7 @@ std::vector<IndexInfo> CatalogManager::getIndexInfo() {
 			if (check.size() < 96 * (j + 1)) {
 				continue;
 			}
-			if (check.substr(96 * j, 1) != "#") {
+			if (check.substr(96 * j, 1) != "#" && check.substr(96 * j, 1) != "\0" && check.substr(96 * j, 1) != " ") {
 				IndexInfo newIndex;
 				std::string tn = check.substr(96 * j, 32);
 				std::string an = check.substr(96 * j + 32, 32);
@@ -570,4 +570,3 @@ IndexInfo CatalogManager::getIndexInfo(std::string indexName) {
 	}
 	return result;
 }
-
