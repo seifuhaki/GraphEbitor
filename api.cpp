@@ -8,41 +8,83 @@
 API::API() {}
 //析构函数
 API::~API() {}
-
-Table API::selectRecord(std::string table_name, std::vector<std::string> target_attr, std::vector<Where> where, char operation)
+Table API::selectRecord(std::string table_name)
 {
-	if (target_attr.size() == 0) {
-		return record.selectRecord(table_name);
-	}
-	else if (target_attr.size() == 1) {
-		return record.selectRecord(table_name, target_attr[0], where[0]);
-	}
-	else {
-		Table table1 = record.selectRecord(table_name, target_attr[0], where[0]);
-		Table table2 = record.selectRecord(table_name, target_attr[1], where[1]);
-
-		if (operation)
-			return joinTable(table1, table2, target_attr[0], where[0]);
-		else
-			return unionTable(table1, table2, target_attr[0], where[0]);
-	}
+	return record.selectRecord(table_name);
 }
-int API::deleteRecord(std::string table_name, std::string target_attr, Where where)
+//need type
+Table API::selectRecord(std::string table_name, std::vector<std::string> target_attr, std::vector<std::string> relations, std::vector<std::string> values)
+{
+	std::vector<Where> where;
+	if (relations[0] == "=")where[0].relation_character = EQUAL;
+	else if (relations[0] == "<>")where[0].relation_character = NOT_EQUAL;
+	else if (relations[0] == "<")where[0].relation_character = LESS;
+	else if (relations[0] == ">")where[0].relation_character = GREATER;
+	else if (relations[0] == "<=")where[0].relation_character = LESS_OR_EQUAL;
+	else if (relations[0] == ">=")where[0].relation_character = GREATER_OR_EQUAL;
+	std::string type = catalog.getType(table_name, target_attr[0]);
+	if (type == "int") { where[0].data.type = "int"; where[0].data.datai = std::stol(values[0]); }
+	else if (type == "float") { where[0].data.type = "float"; where[0].data.dataf = std::stof(values[0]); }
+	else { where[0].data.type = "string"; where[0].data.datas = values[0]; }
+	Table table;
+	table = record.selectRecord(table_name, target_attr[0], where[0]);
+	for (int i = 1; i < values.size(); i++) {
+		if (relations[i] == "=")where[i].relation_character = EQUAL;
+		else if (relations[i] == "<>")where[i].relation_character = NOT_EQUAL;
+		else if (relations[i] == "<")where[i].relation_character = LESS;
+		else if (relations[i] == ">")where[i].relation_character = GREATER;
+		else if (relations[i] == "<=")where[i].relation_character = LESS_OR_EQUAL;
+		else if (relations[i] == ">=")where[i].relation_character = GREATER_OR_EQUAL;
+		std::string type = catalog.getType(table_name, target_attr[0]);
+		if (type == "int") { where[i].data.type = "int"; where[i].data.datai = std::stol(values[i]); }
+		else if (type == "float") { where[i].data.type = "float"; where[i].data.dataf = std::stof(values[i]); }
+		else { where[0].data.type = "string"; where[i].data.datas = values[i]; }
+		Table table_ = record.selectRecord(table_name, target_attr[i], where[i]);
+		table = joinTable(table, table_, target_attr[0], where[0]);
+	}
+	return table;
+}
+int API::deleteRecord(std::string table_name)
 {
 	int result;
-	if (target_attr == "")
-		result = record.deleteRecord(table_name);
-
-	else
-		result = record.deleteRecord(table_name, target_attr, where);
+	result = record.deleteRecord(table_name);
 	return result;
 }
-void API::insertRecord(std::string table_name, Tuple& tuple)
+int API::deleteRecord(std::string table_name, std::string target_attr, std::string relation,std::string value)
 {
+	Where where;
+	if(relation == "=")where.relation_character = EQUAL;
+	else if (relation == "<>")where.relation_character = NOT_EQUAL;
+	else if (relation == "<")where.relation_character = LESS;
+	else if (relation == ">")where.relation_character = GREATER;
+	else if (relation == "<=")where.relation_character = LESS_OR_EQUAL;
+	else if (relation == ">=")where.relation_character = GREATER_OR_EQUAL;
+	std::string type = catalog.getType(table_name, target_attr);
+	if (type == "int") { where.data.type = "int"; where.data.datai = std::stol(value); }
+	else if(type == "float") { where.data.type = "float"; where.data.dataf = std::stof(value); }
+	else { where.data.type = "string"; where.data.datas = value; }
+	int result;
+	result = record.deleteRecord(table_name, target_attr, where);
+	return result;
+}
+//need type
+void API::insertRecord(std::string table_name, std::vector<std::string>values)
+{
+	Tuple tuple = Tuple();
+	TableInfo tableinfo = catalog.getTableInfo(table_name);
+	for (int i = 0; i < values.size(); i++) {
+		std::string type = catalog.getType(table_name, tableinfo.attributeNames[i]);
+		data data_in;
+		if (type == "int") { data_in.type = "int"; data_in.datai = std::stol(values[i]); }
+		else if (type == "float") { data_in.type = "float"; data_in.dataf = std::stof(values[i]); }
+		else { data_in.type = "string"; data_in.datas = values[i]; }
+		tuple.addData(data_in);
+	}
 	record.insertRecord(table_name, tuple);
 }
 bool API::createTable(std::string tableName, TableInfo attribute, std::string primary)
 {
+
 	record.createTableFile(tableName);
 	catalog.createTable(tableName, attribute.attributeNames, attribute.types, attribute.unique, primary);
 
@@ -83,7 +125,7 @@ bool API::createIndex(std::string tableName, std::string index_name, std::string
 
 	return true;
 }
-bool API::dropIndex(std::string tableName, std::string indexName, std::string attrName)
+bool API::dropIndex(std::string indexName)
 {
 	//构造所有的Index
 	std::vector<std::string> table_name;
@@ -96,7 +138,7 @@ bool API::dropIndex(std::string tableName, std::string indexName, std::string at
 		types[i] = indexinfo[i].type;
 	}
 	IndexManager index(table_name, attributeNames, types);
-
+	//给定indexName，获取tableName和attrName
 	std::string file_path = "IndexManager\\" + tableName + "_" + attrName + ".txt";
 	std::string type;
 

@@ -473,7 +473,7 @@ void RecordManager::searchWithIndex(std::string tableName, std::string attribute
 		break;
 	}
 	case NOT_EQUAL: {
-		relations.push_back("!=");
+		relations.push_back("<>");
 		break;
 	}
 	}

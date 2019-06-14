@@ -42,6 +42,9 @@
     <ClInclude Include="api.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="Interpreter.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CatalogManager.cpp">
@@ -63,6 +66,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="api.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Interpreter.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

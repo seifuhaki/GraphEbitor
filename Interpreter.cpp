@@ -219,7 +219,7 @@ void Interpreter::deleteFrom() {
 	tableName = this->instructionList[2];
 
 	if (this->instructionList.size() == 3) {
-		api.deleteAllRecord(tableName);
+		api.deleteRecord(tableName);
 	}
 	else if (this->instructionList.size() == 7) {
 		if (this->instructionList[3] != "where") {
@@ -231,8 +231,7 @@ void Interpreter::deleteFrom() {
 		if (relation != "=" && relation != "<>" && relation != "<" && relation != ">" && relation != "<=" && relation != ">=") {
 			throw syntaxError();
 		}
-		api.deleteRecord(tableName, attributeName, relation, value)
-		// delete from ... where ... (API)
+		api.deleteRecord(tableName, attributeName, relation, value);
 	}
 	else {
 		throw syntaxError();
@@ -269,7 +268,7 @@ void Interpreter::insertInto() {	// notice that there is no space in (...), valu
 		splitString(this->instructionList[i], values, ",");	// int, float, char in string type, char[] are passed with ''
 	}
 
-	api.insertRecord(tableName, values)
+	api.insertRecord(tableName, values);
 	
 	// insert into ... values ... (API)
 }
@@ -289,7 +288,7 @@ void Interpreter::selectAllFrom() {
 	tableName = this->instructionList[3];
 
 	if (this->instructionList.size() == 4) {
-		api.selectAllRecord(tableName)
+		api.selectRecord(tableName);
 		// select * from ... (API)
 		return;
 	}
@@ -336,9 +335,8 @@ void Interpreter::selectAllFrom() {
 			index++;
 		}
 	}
-	api.selectRecord(tableName, attributeNames, relations, values)
+	api.selectRecord(tableName, attributeNames, relations, values);
 	// select * from ... where ... and ... (API)
-
 }
 
 void Interpreter::createIndex() {
@@ -379,7 +377,7 @@ void Interpreter::createIndex() {
 
 	attributeName = this->instructionList[5];
 
-	api.createIndex(tableName, attributeName, indexName)
+	api.createIndex(tableName,indexName,attributeName);
 	// create index ... on ... (...) (API)
 
 }
@@ -393,7 +391,7 @@ void Interpreter::dropTable() {
 
 	tableName = this->instructionList[2];
 
-	dropTable(tableName)
+	api.dropTable(tableName);
 	// drop table ... (API)
 }
 
@@ -406,7 +404,7 @@ void Interpreter::dropIndex() {
 
 	indexName = this->instructionList[2];
 
-	api.dropIndex(indexName)
+	api.dropIndex(indexName);
 	// drop index ... (API)
 
 }
@@ -579,15 +577,12 @@ void Interpreter::createTable() {
 
 	primaryKey = this->instructionList[index];
 
-	api.createTable(tableName, attributeNames, types, unique, primaryKey)
-	/*	create table ... (
-			attributeName type ifunique,
-			...
-			primary key ( primaryKey)
-		）;
-		(API)
-	*/
-
+	TableInfo tableinfo;
+	tableinfo.attributeNames = attributeNames;
+	tableinfo.types = types;
+	tableinfo.unique = unique;
+	tableinfo.tableName = tableName;
+	api.createTable(tableName,tableinfo, primaryKey);
 	// types: int, float, char172, char99....
 }
 

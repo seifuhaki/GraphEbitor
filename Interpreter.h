@@ -21,7 +21,7 @@
 	582 createTable(std::string tableName, std::vector<std::string> attributeNames, std::vector<std::string> types, std::vector<bool> unique, std::string primaryKey)
 */
 
-class interpreter {
+class Interpreter {
 private:
 	std::string instruction;
 	std::vector<std::string> instructionList;
@@ -30,7 +30,7 @@ private:
 	API api;
 
 public:
-	interpreter();
+	Interpreter();
 	bool quit();
 	void getInstruction();
 	void executeInstruction();
