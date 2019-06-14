@@ -24,7 +24,7 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple)
 	std::vector<data> v = tuple.getData();
 	//检测插入的元组的各个属性是否合法
 	for (int i = 0; i < v.size(); i++) {
-		if (v[i].type != attr.types[i])
+		if (cm.getType(tableName,attr.attributeNames[i]) != attr.types[i])
 			throw tupleTypeConflict();
 	}
 	Table table = selectRecord(tmpName);

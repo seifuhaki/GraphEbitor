@@ -25,7 +25,7 @@ Table API::selectRecord(std::string table_name, std::vector<std::string> target_
 	std::string type = catalog.getType(table_name, target_attr[0]);
 	if (type == "int") { where[0].data.type = "int"; where[0].data.datai = std::stol(values[0]); }
 	else if (type == "float") { where[0].data.type = "float"; where[0].data.dataf = std::stof(values[0]); }
-	else { where[0].data.type = "string"; where[0].data.datas = values[0]; }
+	else { where[0].data.type = type; where[0].data.datas = values[0]; }
 	Table table;
 	table = record.selectRecord(table_name, target_attr[0], where[0]);
 	for (int i = 1; i < values.size(); i++) {
@@ -38,7 +38,7 @@ Table API::selectRecord(std::string table_name, std::vector<std::string> target_
 		std::string type = catalog.getType(table_name, target_attr[0]);
 		if (type == "int") { where[i].data.type = "int"; where[i].data.datai = std::stol(values[i]); }
 		else if (type == "float") { where[i].data.type = "float"; where[i].data.dataf = std::stof(values[i]); }
-		else { where[0].data.type = "string"; where[i].data.datas = values[i]; }
+		else { where[0].data.type = type; where[i].data.datas = values[i]; }
 		Table table_ = record.selectRecord(table_name, target_attr[i], where[i]);
 		table = joinTable(table, table_, target_attr[0], where[0]);
 	}
@@ -62,7 +62,7 @@ int API::deleteRecord(std::string table_name, std::string target_attr, std::stri
 	std::string type = catalog.getType(table_name, target_attr);
 	if (type == "int") { where.data.type = "int"; where.data.datai = std::stol(value); }
 	else if(type == "float") { where.data.type = "float"; where.data.dataf = std::stof(value); }
-	else { where.data.type = "string"; where.data.datas = value; }
+	else { where.data.type = type; where.data.datas = value; }
 	int result;
 	result = record.deleteRecord(table_name, target_attr, where);
 	return result;
@@ -77,7 +77,7 @@ void API::insertRecord(std::string table_name, std::vector<std::string>values)
 		data data_in;
 		if (type == "int") { data_in.type = "int"; data_in.datai = std::stol(values[i]); }
 		else if (type == "float") { data_in.type = "float"; data_in.dataf = std::stof(values[i]); }
-		else { data_in.type = "string"; data_in.datas = values[i]; }
+		else { data_in.type = type; data_in.datas = values[i]; }
 		tuple.addData(data_in);
 	}
 	record.insertRecord(table_name, tuple);
