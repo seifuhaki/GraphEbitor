@@ -128,7 +128,52 @@ void Interpreter::executeInstruction() {
 	}
 	catch (cannotOpenFile e) {
 		this->errorOccur = true;
-		std::cout << "File Open Error: Cannot open file '" << this->instructionList[1] << "'." << std::endl;
+		std::cout << "Error: Cannot open file '" << this->instructionList[1] << "'." << std::endl;
+	}
+	catch (tableExists e) {
+		std::cout << "Error: Table already exsists." << std::endl;
+	}
+	catch (tableNotExists e) {
+		std::cout << "Error: Table does not exist." << std::endl;
+	}
+	catch (attributeNotExists e) {
+		std::cout << "Error: Attribute does not exsist." << std::endl;
+	}
+	catch (duplicateIndexOnAttribute e) {
+		std::cout << "Error: Attribute already has index." << std::endl;
+	}
+	catch (duplicateIndexName e) {
+		std::cout << "Error: Duplicate index name." << std::endl;
+	}
+	catch (nameTooLong e) {
+		std::cout << "Error: Names are supposed to contain fewer than 32 letters." << std::endl;
+	}
+	catch (negativeNum e) {
+		std::cout << "Error: Come across negative num while transforming string to interger." << std::endl;
+	}
+	catch (tooManyIndex e) {
+		std::cout << "Error: There should be fewer than 7 indices on a table." << std::endl;
+	}
+	catch (indexNotExist e) {
+		std::cout << "Error: Index does not exist." << std::endl;
+	}
+	catch (illegalIdentifier e) {
+		std::cout << "Error: Illegal identifier is input (chech if there is any '#')." << std::endl;
+	}
+	catch (targetNotFound e) {
+		std::cout << "Error: Value not found in records." << std::endl;
+	}
+	catch (attributeNotUnique e) {
+		std::cout << "Error: Attribute is not unique." << std::endl;
+	}
+	catch (tupleTypeConflict e) {
+		std::cout << "Error: Tuple type conflict." << std::endl;
+	}
+	catch (uniqueConflict e) {
+		std::cout << "Error: Unique conflict." << std::endl;
+	}
+	catch (dataTypeConflict e) {
+		std::cout << "Error: Data type conflict." << std::endl;
 	}
 	catch (...) {
 		this->errorOccur = true;
@@ -220,6 +265,7 @@ void Interpreter::deleteFrom() {
 
 	if (this->instructionList.size() == 3) {
 		api.deleteRecord(tableName);
+		std::cout << "Operation succeeds." << std::endl;
 	}
 	else if (this->instructionList.size() == 7) {
 		if (this->instructionList[3] != "where") {
@@ -232,6 +278,7 @@ void Interpreter::deleteFrom() {
 			throw syntaxError();
 		}
 		api.deleteRecord(tableName, attributeName, relation, value);
+		std::cout << "Operation succeeds." << std::endl;
 	}
 	else {
 		throw syntaxError();
@@ -269,6 +316,7 @@ void Interpreter::insertInto() {	// notice that there is no space in (...), valu
 	}
 
 	api.insertRecord(tableName, values);
+	std::cout << "Operation succeeds." << std::endl;
 	
 	// insert into ... values ... (API)
 }
@@ -289,6 +337,7 @@ void Interpreter::selectAllFrom() {
 
 	if (this->instructionList.size() == 4) {
 		api.selectRecord(tableName);
+		std::cout << "Operation succeeds." << std::endl;
 		// select * from ... (API)
 		return;
 	}
@@ -336,6 +385,7 @@ void Interpreter::selectAllFrom() {
 		}
 	}
 	api.selectRecord(tableName, attributeNames, relations, values);
+	std::cout << "Operation succeeds." << std::endl;
 	// select * from ... where ... and ... (API)
 }
 
@@ -378,6 +428,7 @@ void Interpreter::createIndex() {
 	attributeName = this->instructionList[5];
 
 	api.createIndex(tableName,indexName,attributeName);
+	std::cout << "Operation succeeds." << std::endl;
 	// create index ... on ... (...) (API)
 
 }
@@ -392,6 +443,7 @@ void Interpreter::dropTable() {
 	tableName = this->instructionList[2];
 
 	api.dropTable(tableName);
+	std::cout << "Operation succeeds." << std::endl;
 	// drop table ... (API)
 }
 
@@ -404,7 +456,8 @@ void Interpreter::dropIndex() {
 
 	indexName = this->instructionList[2];
 
-	api.dropIndex(indexName);
+	//api.dropIndex(indexName);
+	//std::cout << "Operation succeeds." << std::endl;
 	// drop index ... (API)
 
 }
@@ -583,6 +636,7 @@ void Interpreter::createTable() {
 	tableinfo.unique = unique;
 	tableinfo.tableName = tableName;
 	api.createTable(tableName,tableinfo, primaryKey);
+	std::cout << "Operation succeeds." << std::endl;
 	// types: int, float, char172, char99....
 }
 
