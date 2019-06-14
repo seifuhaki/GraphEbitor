@@ -629,7 +629,13 @@ void Interpreter::createTable() {
 	}
 
 	primaryKey = this->instructionList[index];
-
+	
+	for (std::size_t i = 0; i < unique.size(); i++) {
+		if (attributeNames[i] == primaryKey) {
+			unique[i] = true;
+		}
+	}
+	
 	TableInfo tableinfo;
 	tableinfo.attributeNames = attributeNames;
 	tableinfo.types = types;
