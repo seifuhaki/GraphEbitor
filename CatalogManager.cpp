@@ -156,6 +156,7 @@ void CatalogManager::dropTable(const std::string tableName) {
 				}
 				int pageId = bm.getPageId(TableInfoPath, i);
 				bm.modifyPage(pageId);
+				bm.flushPage(pageId, TableInfoPath, i);
 				return;
 			}
 		}
@@ -229,6 +230,7 @@ void CatalogManager::createIndex(const std::string tableName, const std::string 
 					buf[j * 1024 + 676] += 1; // 因为写的时候最大是7，所以直接加1，如果调整最大值这边也要调整
 				}
 				bm.modifyPage(pageId);
+				bm.flushPage(pageId, TableInfoPath, i);
 				break;
 			}
 		}
@@ -247,6 +249,7 @@ void CatalogManager::createIndex(const std::string tableName, const std::string 
 				info += addStr(indexName, 32);
 				strncpy_s(buf + 96 * j, PAGESIZE - 96 * j, info.c_str(), 96);
 				bm.modifyPage(pageId);
+				bm.flushPage(pageId, IndexInfoPath, i);
 				return;
 			}
 		}
@@ -260,7 +263,7 @@ void CatalogManager::createIndex(const std::string tableName, const std::string 
 	info += addStr(indexName, 32);
 	strncpy_s(buf, PAGESIZE, info.c_str(), 96);
 	bm.modifyPage(pageId);
-
+	bm.flushPage(pageId, IndexInfoPath, blockNum);
 }
 
 bool CatalogManager::hasAttribute(const std::string tableName, const std::string attributeName) {
@@ -362,6 +365,7 @@ void CatalogManager::dropIndex(const std::string indexName) {
 				std::string t = addStr("", 96);
 				strncpy_s(buf + 96 * j, PAGESIZE - 96 * j, t.c_str(), 96);
 				bm.modifyPage(pageId);
+				bm.flushPage(pageId, IndexInfoPath, i);
 				break;
 			}
 		}
@@ -391,6 +395,7 @@ void CatalogManager::dropIndex(const std::string indexName) {
 
 				buf[j * 1024 + 676] -= 1;
 				bm.modifyPage(pageId);
+				bm.flushPage(pageId, TableInfoPath, i);
 				break;
 			}
 		}
