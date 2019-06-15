@@ -18,61 +18,61 @@ extern BufferManager bm;
 
 class RecordManager {
 public:
-	//ÊäÈë£º±íÃû
-	//Êä³ö£ºvoid
-	//¹¦ÄÜ£º½¨Á¢±íÎÄ¼ş
-	//Òì³££ºÎŞÒì³£´¦Àí£¨ÓÉcatalog manager´¦Àí£©
+	//è¾“å…¥ï¼šè¡¨å
+	//è¾“å‡ºï¼švoid
+	//åŠŸèƒ½ï¼šå»ºç«‹è¡¨æ–‡ä»¶
+	//å¼‚å¸¸ï¼šæ— å¼‚å¸¸å¤„ç†ï¼ˆç”±catalog managerå¤„ç†ï¼‰
 	void createTableFile(std::string tableName);
-	//ÊäÈë£º±íÃû
-	//Êä³ö£ºvoid
-	//¹¦ÄÜ£ºÉ¾³ı±íÎÄ¼ş
-	//Òì³££ºÎŞÒì³£´¦Àí£¨ÓÉcatalog manager´¦Àí£©
+	//è¾“å…¥ï¼šè¡¨å
+	//è¾“å‡ºï¼švoid
+	//åŠŸèƒ½ï¼šåˆ é™¤è¡¨æ–‡ä»¶
+	//å¼‚å¸¸ï¼šæ— å¼‚å¸¸å¤„ç†ï¼ˆç”±catalog managerå¤„ç†ï¼‰
 	void dropTableFile(std::string table_name);
-	//ÊäÈë£º±íÃû£¬Ò»¸öÔª×é
-	//Êä³ö£ºvoid
-	//¹¦ÄÜ£ºÏò¶ÔÓ¦±íÖĞ²åÈëÒ»Ìõ¼ÇÂ¼
-	//Òì³££ºÈç¹ûÔª×éÀàĞÍ²»Æ¥Åä£¬Å×³ötuple_type_conflictÒì³£¡£Èç¹û
-	//Ö÷¼ü³åÍ»£¬Å×³öprimary_key_conflictÒì³£¡£Èç¹ûuniqueÊôĞÔ³åÍ»£¬
-	//Å×³öunique_conflictÒì³£¡£Èç¹û±í²»´æÔÚ£¬Å×³ötable_not_existÒì³£¡£
-	void insertRecord(std::string tableName, Tuple &tuple);
-	//ÊäÈë£º±íÃû
-	//Êä³ö£ºint(É¾³ıµÄ¼ÇÂ¼Êı)
-	//¹¦ÄÜ£ºÉ¾³ı¶ÔÓ¦±íÖĞËùÓĞ¼ÇÂ¼£¨²»É¾³ı±íÎÄ¼ş£©
-	//Òì³££ºÈç¹û±í²»´æÔÚ£¬Å×³ötable_not_existÒì³£
+	//è¾“å…¥ï¼šè¡¨åï¼Œä¸€ä¸ªå…ƒç»„
+	//è¾“å‡ºï¼švoid
+	//åŠŸèƒ½ï¼šå‘å¯¹åº”è¡¨ä¸­æ’å…¥ä¸€æ¡è®°å½•
+	//å¼‚å¸¸ï¼šå¦‚æœå…ƒç»„ç±»å‹ä¸åŒ¹é…ï¼ŒæŠ›å‡ºtuple_type_conflictå¼‚å¸¸ã€‚å¦‚æœ
+	//ä¸»é”®å†²çªï¼ŒæŠ›å‡ºprimary_key_conflictå¼‚å¸¸ã€‚å¦‚æœuniqueå±æ€§å†²çªï¼Œ
+	//æŠ›å‡ºunique_conflictå¼‚å¸¸ã€‚å¦‚æœè¡¨ä¸å­˜åœ¨ï¼ŒæŠ›å‡ºtable_not_existå¼‚å¸¸ã€‚
+	void insertRecord(std::string tableName, Tuple &tuple, IndexManager* im);
+	//è¾“å…¥ï¼šè¡¨å
+	//è¾“å‡ºï¼šint(åˆ é™¤çš„è®°å½•æ•°)
+	//åŠŸèƒ½ï¼šåˆ é™¤å¯¹åº”è¡¨ä¸­æ‰€æœ‰è®°å½•ï¼ˆä¸åˆ é™¤è¡¨æ–‡ä»¶ï¼‰
+	//å¼‚å¸¸ï¼šå¦‚æœè¡¨ä¸å­˜åœ¨ï¼ŒæŠ›å‡ºtable_not_existå¼‚å¸¸
 	int deleteRecord(std::string tableName);
-	//ÊäÈë£º±íÃû£¬Ä¿±êÊôĞÔ£¬Ò»¸öWhereÀàĞÍµÄ¶ÔÏó
-	//Êä³ö£ºint(É¾³ıµÄ¼ÇÂ¼Êı)
-	//¹¦ÄÜ£ºÉ¾³ı¶ÔÓ¦±íÖĞËùÓĞÄ¿±êÊôĞÔÖµÂú×ãWhereÌõ¼şµÄ¼ÇÂ¼
-	//Òì³££ºÈç¹û±í²»´æÔÚ£¬Å×³ötable_not_existÒì³£¡£Èç¹ûÊôĞÔ²»´æÔÚ£¬Å×³öattribute_not_existÒì³£¡£
-	//Èç¹ûWhereÌõ¼şÖĞµÄÁ½¸öÊı¾İÀàĞÍ²»Æ¥Åä£¬Å×³ödata_type_conflictÒì³£¡£
+	//è¾“å…¥ï¼šè¡¨åï¼Œç›®æ ‡å±æ€§ï¼Œä¸€ä¸ªWhereç±»å‹çš„å¯¹è±¡
+	//è¾“å‡ºï¼šint(åˆ é™¤çš„è®°å½•æ•°)
+	//åŠŸèƒ½ï¼šåˆ é™¤å¯¹åº”è¡¨ä¸­æ‰€æœ‰ç›®æ ‡å±æ€§å€¼æ»¡è¶³Whereæ¡ä»¶çš„è®°å½•
+	//å¼‚å¸¸ï¼šå¦‚æœè¡¨ä¸å­˜åœ¨ï¼ŒæŠ›å‡ºtable_not_existå¼‚å¸¸ã€‚å¦‚æœå±æ€§ä¸å­˜åœ¨ï¼ŒæŠ›å‡ºattribute_not_existå¼‚å¸¸ã€‚
+	//å¦‚æœWhereæ¡ä»¶ä¸­çš„ä¸¤ä¸ªæ•°æ®ç±»å‹ä¸åŒ¹é…ï¼ŒæŠ›å‡ºdata_type_conflictå¼‚å¸¸ã€‚
 	int deleteRecord(std::string tableName, std::string target_attr, Where where);
-	//ÊäÈë£º±íÃû
-	//Êä³ö£ºTableÀàĞÍ¶ÔÏó
-	//¹¦ÄÜ£º·µ»ØÕûÕÅ±í
-	//Òì³££ºÈç¹û±í²»´æÔÚ£¬Å×³ötable_not_existÒì³£
+	//è¾“å…¥ï¼šè¡¨å
+	//è¾“å‡ºï¼šTableç±»å‹å¯¹è±¡
+	//åŠŸèƒ½ï¼šè¿”å›æ•´å¼ è¡¨
+	//å¼‚å¸¸ï¼šå¦‚æœè¡¨ä¸å­˜åœ¨ï¼ŒæŠ›å‡ºtable_not_existå¼‚å¸¸
 	Table selectRecord(std::string tableName, std::string resultTableName = "tmptable");
-	//ÊäÈë£º±íÃû£¬Ä¿±êÊôĞÔ£¬Ò»¸öWhereÀàĞÍµÄ¶ÔÏó
-	//Êä³ö£ºTableÀàĞÍ¶ÔÏó
-	//¹¦ÄÜ£º·µ»Ø°üº¬ËùÓĞÄ¿±êÊôĞÔÂú×ãWhereÌõ¼şµÄ¼ÇÂ¼µÄ±í
-	//Òì³££ºÈç¹û±í²»´æÔÚ£¬Å×³ötable_not_existÒì³£¡£Èç¹ûÊôĞÔ²»´æÔÚ£¬Å×³öattribute_not_existÒì³£¡£
-	//Èç¹ûWhereÌõ¼şÖĞµÄÁ½¸öÊı¾İÀàĞÍ²»Æ¥Åä£¬Å×³ödata_type_conflictÒì³£¡£
+	//è¾“å…¥ï¼šè¡¨åï¼Œç›®æ ‡å±æ€§ï¼Œä¸€ä¸ªWhereç±»å‹çš„å¯¹è±¡
+	//è¾“å‡ºï¼šTableç±»å‹å¯¹è±¡
+	//åŠŸèƒ½ï¼šè¿”å›åŒ…å«æ‰€æœ‰ç›®æ ‡å±æ€§æ»¡è¶³Whereæ¡ä»¶çš„è®°å½•çš„è¡¨
+	//å¼‚å¸¸ï¼šå¦‚æœè¡¨ä¸å­˜åœ¨ï¼ŒæŠ›å‡ºtable_not_existå¼‚å¸¸ã€‚å¦‚æœå±æ€§ä¸å­˜åœ¨ï¼ŒæŠ›å‡ºattribute_not_existå¼‚å¸¸ã€‚
+	//å¦‚æœWhereæ¡ä»¶ä¸­çš„ä¸¤ä¸ªæ•°æ®ç±»å‹ä¸åŒ¹é…ï¼ŒæŠ›å‡ºdata_type_conflictå¼‚å¸¸ã€‚
     Table selectRecord(std::string table_name, std::string target_attr, Where where, std::string result_table_name = "tmp_table");
 private:
-	//´ÓÄÚ´æÖĞ¶ÁÈ¡Ò»¸ötuple
+	//ä»å†…å­˜ä¸­è¯»å–ä¸€ä¸ªtuple
 	Tuple readTuple(char* p, TableInfo attr);
-	//»ñÈ¡Ò»¸ötupleµÄ³¤¶È
+	//è·å–ä¸€ä¸ªtupleçš„é•¿åº¦
 	int getTupleLength(char* p);
-	//insertRecordµÄ¸¨Öúº¯Êı
+	//insertRecordçš„è¾…åŠ©å‡½æ•°
 	void insertRecord1(char* p, int offset, int len, const std::vector<data>& v);
-	//deleteRecordµÄ¸¨Öúº¯Êı
+	//deleteRecordçš„è¾…åŠ©å‡½æ•°
 	char* deleteRecord1(char* p);
-	//ÅĞ¶Ï²åÈëµÄ¼ÇÂ¼ÊÇ·ñºÍÆäËû¼ÇÂ¼³åÍ»
+	//åˆ¤æ–­æ’å…¥çš„è®°å½•æ˜¯å¦å’Œå…¶ä»–è®°å½•å†²çª
 	bool isConflict(std::vector<Tuple>& tuples, std::vector<data>& v, int index);
-	//´øË÷Òı²éÕÒ
+	//å¸¦ç´¢å¼•æŸ¥æ‰¾
 	void searchWithIndex(std::string tableName, std::string attributeName, Where where, std::vector<int>& block_ids);
-	//ÔÚ¿éÖĞ½øĞĞÌõ¼şÉ¾³ı
+	//åœ¨å—ä¸­è¿›è¡Œæ¡ä»¶åˆ é™¤
 	int conditionDeleteInBlock(std::string table_name, int block_id, TableInfo attr, int index, Where where);
-	//ÔÚ¿éÖĞ½øĞĞÌõ¼ş²éÑ¯
+	//åœ¨å—ä¸­è¿›è¡Œæ¡ä»¶æŸ¥è¯¢
 	void conditionSelectInBlock(std::string table_name, int block_id, TableInfo attr, int index, Where where, std::vector<Tuple>& v);
 
 	BufferManager bm;
