@@ -18,7 +18,9 @@ API::API() {
 	this->im = new IndexManager(table_names, attributeNames, types);
 }
 //析构函数
-API::~API() {}
+API::~API() {
+	delete this->im;
+}
 Table API::selectRecord(std::string table_name)
 {
 	return record.selectRecord(table_name);
