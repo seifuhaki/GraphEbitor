@@ -1,4 +1,4 @@
-﻿#ifndef _API_H_
+#ifndef _API_H_
 #define _API_H_ 1
 
 #include "basic.h"
@@ -79,6 +79,7 @@ private:
 private:
 	RecordManager record;
 	CatalogManager catalog;
+	IndexManager *im;
 };
 
 //用于对vector的sort时排序
