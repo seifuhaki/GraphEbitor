@@ -11,20 +11,20 @@ void RecordManager::dropTableFile(std::string tableName) {
 	remove(tableName.c_str());
 }
 
-void RecordManager::insertRecord(std::string tableName, Tuple& tuple)
+void RecordManager::insertRecord(std::string tableName, Tuple& tuple, IndexManager* im)
 {
 	std::string tmpName = tableName;
 	tableName = tableName + ".txt";
 	CatalogManager cm;
 	//检测表是否存在
-	if (!cm.hasTable(tmpName)){
+	if (!cm.hasTable(tmpName)) {
 		throw tableNotExists();
 	}
 	TableInfo attr = cm.getTableInfo(tmpName);
 	std::vector<data> v = tuple.getData();
 	//检测插入的元组的各个属性是否合法
 	for (int i = 0; i < v.size(); i++) {
-		if (cm.getType(tmpName,attr.attributeNames[i]) != attr.types[i])
+		if (cm.getType(tmpName, attr.attributeNames[i]) != attr.types[i])
 			throw tupleTypeConflict();
 	}
 	Table table = selectRecord(tmpName);
@@ -47,11 +47,11 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple)
 	//计算Tuple的长度
 	for (j = 0; j < v.size(); j++) {
 		data d = v[j];
-		if(d.type == "int") {
+		if (d.type == "int") {
 			int t = getDataLength(d.datai);
 			len += t; break;
 		}
-		else if(d.type == "float") {
+		else if (d.type == "float") {
 			float t = getDataLength(d.dataf);
 			len += t; break;
 		}
@@ -82,16 +82,7 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple)
 		bm.modifyPage(pageId);
 	}
 	//构造所有的Index
-	std::vector<std::string> table_name;
-	std::vector<std::string> attributeNames;
-	std::vector<std::string> types;
-	std::vector<IndexInfo> indexinfo = cm.getIndexInfo();
-	for (int i = 0; i < indexinfo.size(); i++) {
-		table_name[i] = indexinfo[i].tableName;
-		attributeNames[i] = indexinfo[i].attributeName;
-		types[i] = indexinfo[i].type;
-	}
-	IndexManager im(table_name, attributeNames, types);
+	
 	for (int i = 0; i < attr.attributeNames.size(); i++) {
 		if (cm.attributeHasIndex(tmpName, attr.attributeNames[i]) == true) {
 			std::string attr_name = attr.attributeNames[i];
@@ -99,14 +90,14 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple)
 			std::vector<data> d = tuple.getData();
 			if (attr.types[i] == "int") {
 				std::string key = std::to_string(d[i].datai);
-				im.insertIndex(file_path, attr.types[i], key, blockOffset, i);
+				im->insertIndex(file_path, attr.types[i], key, blockOffset, i);
 			}
 			else if (attr.types[i] == "float") {
 				std::string key = std::to_string(d[i].dataf);
-				im.insertIndex(file_path, attr.types[i], key, blockOffset, i);
+				im->insertIndex(file_path, attr.types[i], key, blockOffset, i);
 			}
 			else {
-				im.insertIndex(file_path, attr.types[i], d[i].datas, blockOffset, i);
+				im->insertIndex(file_path, attr.types[i], d[i].datas, blockOffset, i);
 			}
 		}
 	}
@@ -121,10 +112,10 @@ int RecordManager::deleteRecord(std::string tableName)
 	if (!cm.hasTable(tmpName)) {
 		throw tableNotExists();
 	}
-	
+
 	int blockNum = cm.getBlockNum(tableName);
 	//表文件大小为0时直接返回
-	if(blockNum <= 0)
+	if (blockNum <= 0)
 		return 0;
 	TableInfo attr = cm.getTableInfo(tmpName);
 	int count = 0;
@@ -141,7 +132,7 @@ int RecordManager::deleteRecord(std::string tableName)
 	IndexManager im(table_name, attributeNames, types);
 	//遍历所有块
 	for (int i = 0; i < blockNum; i++) {
-		char *p = bm.getPage(tableName,i);
+		char *p = bm.getPage(tableName, i);
 		char *t = p;
 		while (*p != '\0'&&p < t + PAGESIZE) {
 			Tuple tuple = readTuple(p, attr);
@@ -173,7 +164,7 @@ int RecordManager::deleteRecord(std::string tableName)
 	return count;
 }
 
-int RecordManager::deleteRecord(std::string tableName, std::string target_attr,Where where)
+int RecordManager::deleteRecord(std::string tableName, std::string target_attr, Where where)
 {
 	std::string tmpName = tableName;
 	tableName = tableName + ".txt";
@@ -228,7 +219,7 @@ Table RecordManager::selectRecord(std::string tableName, std::string resultTable
 	}
 
 	int blockNum = cm.getBlockNum(tableName);
-	if(blockNum<=0)blockNum = 1;
+	if (blockNum <= 0)blockNum = 1;
 	TableInfo attr = cm.getTableInfo(tmpName);
 	Table table(resultTableName, attr);
 	std::vector<Tuple> &v = table.getTuple();
@@ -322,7 +313,7 @@ void RecordManager::insertRecord1(char* p, int offset, int len, const std::vecto
 		if (d.type == "int") {
 			copyString(p, offset, d.datai);
 		}
-		else if(d.type == "float") {
+		else if (d.type == "float") {
 			copyString(p, offset, d.dataf);
 		}
 		else {
@@ -355,11 +346,11 @@ Tuple RecordManager::readTuple(char* p, TableInfo attr) {
 		tmp[j] = '\0';
 		p++;
 		std::string s(tmp);
-		if(data.type == "int") {
+		if (data.type == "int") {
 			std::stringstream stream(s);
 			stream >> data.datai;
 		}
-		else if(data.type == "float") {
+		else if (data.type == "float") {
 			std::stringstream stream(s);
 			stream >> data.dataf;
 		}
@@ -396,7 +387,7 @@ int RecordManager::conditionDeleteInBlock(std::string tableName, int block_id, T
 		Tuple tuple = readTuple(p, attr);
 		std::vector<data> d = tuple.getData();
 		//根据属性类型执行不同操作
-		if(attr.types[index] == "int") {
+		if (attr.types[index] == "int") {
 			//如果满足where条件
 			if (isSatisfied(d[index].datai, where.data.datai, where.relation_character) == true) {
 				//将记录删除
@@ -409,7 +400,7 @@ int RecordManager::conditionDeleteInBlock(std::string tableName, int block_id, T
 				p = p + len;
 			}
 		}
-		else if(attr.types[index] == "float"){
+		else if (attr.types[index] == "float") {
 			if (isSatisfied(d[index].dataf, where.data.dataf, where.relation_character) == true) {
 				p = deleteRecord1(p);
 				count++;
@@ -482,9 +473,9 @@ void RecordManager::searchWithIndex(std::string tableName, std::string attribute
 	std::vector<std::string> searchTypes;
 	searchTypes.push_back(where.data.type);
 	std::vector<std::string> searchKeys;
-	if (where.data.type == "int") 
+	if (where.data.type == "int")
 		searchKeys.push_back(std::to_string(where.data.datai));
-	else if(where.data.type == "float")
+	else if (where.data.type == "float")
 		searchKeys.push_back(std::to_string(where.data.dataf));
 	else searchKeys.push_back(where.data.datas);
 
@@ -519,13 +510,13 @@ void RecordManager::conditionSelectInBlock(std::string table_name, int block_id,
 			}
 			//不满足条件，跳过该记录
 		}
-			//同case1
-		else if(attr.types[index] == "float"){
+		//同case1
+		else if (attr.types[index] == "float") {
 			if (isSatisfied(d[index].dataf, where.data.dataf, where.relation_character) == true) {
 				v.push_back(tuple);
 			}
 		}
-			//同case1
+		//同case1
 		else {
 			if (isSatisfied(d[index].datas, where.data.datas, where.relation_character) == true) {
 				v.push_back(tuple);
