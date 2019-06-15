@@ -5,7 +5,18 @@
 #include "api.h"
 
 //构造函数
-API::API() {}
+API::API() {
+	std::vector<std::string> table_names;
+	std::vector<std::string> attributeNames;
+	std::vector<std::string> types;
+	std::vector<IndexInfo> indexinfo = this->catalog.getIndexInfo();
+	for (int i = 0; i < indexinfo.size(); i++) {
+		table_names.push_back(indexinfo[i].tableName);
+		attributeNames.push_back(indexinfo[i].attributeName);
+		types.push_back(indexinfo[i].type);
+	}
+	this->im = new IndexManager(table_names, attributeNames, types);
+}
 //析构函数
 API::~API() {}
 Table API::selectRecord(std::string table_name)
