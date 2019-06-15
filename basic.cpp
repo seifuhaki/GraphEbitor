@@ -4,6 +4,7 @@ Tuple::Tuple(const Tuple &tuple_in) {
 	{
 		this->data_.push_back(tuple_in.data_[index]);
 	}
+	this->isDeleted_ = tuple_in.isDeleted_;
 }
 
 inline int Tuple::getSize() {

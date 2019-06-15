@@ -49,11 +49,11 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple, IndexManag
 		data d = v[j];
 		if (d.type == "int") {
 			int t = getDataLength(d.datai);
-			len += t; break;
+			len += t;
 		}
 		else if (d.type == "float") {
 			float t = getDataLength(d.dataf);
-			len += t; break;
+			len += t;
 		}
 		else {
 			len += d.datas.length();
