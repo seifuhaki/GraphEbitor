@@ -116,7 +116,6 @@ bool API::dropTable(std::string table_name)
 }
 bool API::createIndex(std::string tableName, std::string index_name, std::string attrName)
 {
-	//构造所有的Index
 	std::string file_path = "IndexManager\\" + tableName + "_" + attrName + ".txt";
 	std::string type;
 
@@ -129,7 +128,7 @@ bool API::createIndex(std::string tableName, std::string index_name, std::string
 		}
 	}
 	this->im->createIndex(file_path, type);
-
+	record.createIndex(this->im, tableName, attrName);
 	return true;
 }
 bool API::dropIndex(std::string indexName)

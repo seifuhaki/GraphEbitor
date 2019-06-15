@@ -81,7 +81,6 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple, IndexManag
 		int pageId = bm.getPageId(tableName, blockNum);
 		bm.modifyPage(pageId);
 	}
-	//构造所有的Index
 	
 	for (int i = 0; i < attr.attributeNames.size(); i++) {
 		if (cm.attributeHasIndex(tmpName, attr.attributeNames[i]) == true) {
@@ -295,6 +294,63 @@ Table RecordManager::selectRecord(std::string tableName, std::string target_attr
 		}
 	}
 	return table;
+}
+
+void RecordManager::createIndex(IndexManager* index_manager, std::string tableName, std::string target_attr) {
+	std::string tmpName = tableName;
+	tableName = tableName + ".txt";
+	CatalogManager cm;
+	//检测表是否存在
+	if (!cm.hasTable(tmpName)) {
+		throw tableNotExists();
+	}
+	TableInfo attr = cm.getTableInfo(tmpName);
+	int index = -1;
+	//获取目标属性的编号
+	for (int i = 0; i < attr.attributeNames.size(); i++) {
+		if (attr.attributeNames[i] == target_attr) {
+			index = i;
+			break;
+		}
+	}
+	//目标属性不存在，抛出异常
+	if (index == -1) {
+		throw attributeNotExists();
+	}
+	//异常检测完成
+
+	//获取文件所占的块的数量
+	int block_num = cm.getBlockNum(tableName);
+	//处理文件大小为0的特殊情况
+	if (block_num <= 0)
+		block_num = 1;
+	//获取表的属性
+	std::string file_path = "IndexManager\\" + tmpName + "_" + target_attr + ".txt";
+	//遍历所有块
+	for (int i = 0; i < block_num; i++) {
+		//获取当前块的句柄
+		char* p = bm.getPage(tableName, i);
+		char* t = p;
+		std::string key;
+		//遍历块中所有记录
+		while (*p != '\0' && p < t + PAGESIZE) {
+			//读取记录
+			Tuple tuple = readTuple(p, attr);
+			if (tuple.isDeleted() == false) {
+				std::vector<data> v = tuple.getData();
+				if (attr.types[index] == "int") {
+					key = std::to_string(v[index].datai);
+				}
+				else if (attr.types[index] == "float") {
+					key = std::to_string(v[index].dataf);
+				}
+				else { key = v[index].datas; }
+				index_manager->insertIndex(file_path,v[index].type,key,i,index);//为块中的记录插入索引
+			}
+			int len = getTupleLength(p);
+			p = p + len;
+		}
+	}
 }
 //Insert的辅助函数
 void RecordManager::insertRecord1(char* p, int offset, int len, const std::vector<data>& v)
