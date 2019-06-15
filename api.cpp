@@ -1,4 +1,4 @@
-﻿#include <algorithm>
+#include <algorithm>
 #include <string>
 #include <vector>
 #include <iterator>
@@ -50,10 +50,10 @@ int API::deleteRecord(std::string table_name)
 	result = record.deleteRecord(table_name);
 	return result;
 }
-int API::deleteRecord(std::string table_name, std::string target_attr, std::string relation,std::string value)
+int API::deleteRecord(std::string table_name, std::string target_attr, std::string relation, std::string value)
 {
 	Where where;
-	if(relation == "=")where.relation_character = EQUAL;
+	if (relation == "=")where.relation_character = EQUAL;
 	else if (relation == "<>")where.relation_character = NOT_EQUAL;
 	else if (relation == "<")where.relation_character = LESS;
 	else if (relation == ">")where.relation_character = GREATER;
@@ -61,7 +61,7 @@ int API::deleteRecord(std::string table_name, std::string target_attr, std::stri
 	else if (relation == ">=")where.relation_character = GREATER_OR_EQUAL;
 	std::string type = catalog.getType(table_name, target_attr);
 	if (type == "int") { where.data.type = "int"; where.data.datai = std::stol(value); }
-	else if(type == "float") { where.data.type = "float"; where.data.dataf = std::stof(value); }
+	else if (type == "float") { where.data.type = "float"; where.data.dataf = std::stof(value); }
 	else { where.data.type = type; where.data.datas = value; }
 	int result;
 	result = record.deleteRecord(table_name, target_attr, where);
@@ -105,9 +105,9 @@ bool API::createIndex(std::string tableName, std::string index_name, std::string
 	std::vector<std::string> types;
 	std::vector<IndexInfo> indexinfo = catalog.getIndexInfo();
 	for (int i = 0; i < indexinfo.size(); i++) {
-		table_name[i] = indexinfo[i].tableName;
-		attributeNames[i] = indexinfo[i].attributeName;
-		types[i] = indexinfo[i].type;
+		table_name.push_back(indexinfo[i].tableName);
+		attributeNames.push_back(indexinfo[i].attributeName);
+		types.push_back(indexinfo[i].type);
 	}
 	IndexManager index(table_name, attributeNames, types);
 	std::string file_path = "IndexManager\\" + tableName + "_" + attrName + ".txt";
@@ -206,8 +206,8 @@ bool sortcmp(const Tuple &tuple1, const Tuple &tuple2)
 	std::vector<data> data1 = tuple1.getData();
 	std::vector<data> data2 = tuple2.getData();
 
-	if(data1[0].type == "int") return data1[0].datai < data2[0].datai;
-	else if(data1[0].type == "float")return data1[0].dataf < data2[0].dataf;
+	if (data1[0].type == "int") return data1[0].datai < data2[0].datai;
+	else if (data1[0].type == "float")return data1[0].dataf < data2[0].dataf;
 	else return data1[0].datas < data2[0].datas;
 }
 //用于对vector对合并时排序
@@ -228,7 +228,7 @@ bool calcmp(const Tuple &tuple1, const Tuple &tuple2)
 			if (data1[0].dataf != data2[0].dataf)
 				flag = true;
 		}
-		else{
+		else {
 			if (data1[0].datas != data2[0].datas)
 				flag = true;
 		}
@@ -246,7 +246,7 @@ bool isSatisfied(Tuple& tuple, int target_attr, Where where)
 
 	switch (where.relation_character) {
 	case LESS: {
-		if(where.data.type == "int") return (data[target_attr].datai < where.data.datai);
+		if (where.data.type == "int") return (data[target_attr].datai < where.data.datai);
 		else if (where.data.type == "float") return (data[target_attr].dataf < where.data.dataf);
 		else return (data[target_attr].datas < where.data.datas);
 	} break;
@@ -261,7 +261,7 @@ bool isSatisfied(Tuple& tuple, int target_attr, Where where)
 		else return (data[target_attr].datas < where.data.datas);
 	} break;
 	case GREATER_OR_EQUAL: {
-		if(where.data.type == "int") return (data[target_attr].datai < where.data.datai);
+		if (where.data.type == "int") return (data[target_attr].datai < where.data.datai);
 		else if (where.data.type == "float") return (data[target_attr].dataf < where.data.dataf);
 		else return (data[target_attr].datas < where.data.datas);
 	} break;
