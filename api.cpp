@@ -100,7 +100,11 @@ bool API::createTable(std::string tableName, TableInfo attribute, std::string pr
 
 	record.createTableFile(tableName);
 	catalog.createTable(tableName, attribute.attributeNames, attribute.types, attribute.unique, primary);
-
+	std::string file_path = "IndexManager\\" + tableName + "_" + primary + ".txt";
+	for (int i = 0; i < attribute.attributeNames.size(); i++) {
+		if(primary == attribute.attributeNames[i])
+		this->im->createIndex(file_path, attribute.types[i]);
+	}
 	return true;
 }
 bool API::dropTable(std::string table_name)
