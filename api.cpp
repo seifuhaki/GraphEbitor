@@ -91,7 +91,7 @@ void API::insertRecord(std::string table_name, std::vector<std::string>values)
 		else { data_in.type = type; data_in.datas = values[i]; }
 		tuple.addData(data_in);
 	}
-	record.insertRecord(table_name, tuple);
+	record.insertRecord(table_name, tuple, this->im);
 }
 bool API::createTable(std::string tableName, TableInfo attribute, std::string primary)
 {
@@ -111,16 +111,6 @@ bool API::dropTable(std::string table_name)
 bool API::createIndex(std::string tableName, std::string index_name, std::string attrName)
 {
 	//构造所有的Index
-	std::vector<std::string> table_name;
-	std::vector<std::string> attributeNames;
-	std::vector<std::string> types;
-	std::vector<IndexInfo> indexinfo = catalog.getIndexInfo();
-	for (int i = 0; i < indexinfo.size(); i++) {
-		table_name.push_back(indexinfo[i].tableName);
-		attributeNames.push_back(indexinfo[i].attributeName);
-		types.push_back(indexinfo[i].type);
-	}
-	IndexManager index(table_name, attributeNames, types);
 	std::string file_path = "IndexManager\\" + tableName + "_" + attrName + ".txt";
 	std::string type;
 
@@ -132,23 +122,12 @@ bool API::createIndex(std::string tableName, std::string index_name, std::string
 			break;
 		}
 	}
-	index.createIndex(file_path, type);
+	this->im->createIndex(file_path, type);
 
 	return true;
 }
 bool API::dropIndex(std::string indexName)
 {
-	//构造所有的Index
-	std::vector<std::string> table_name;
-	std::vector<std::string> attributeNames;
-	std::vector<std::string> types;
-	std::vector<IndexInfo> indexinfo = catalog.getIndexInfo();
-	for (int i = 0; i < indexinfo.size(); i++) {
-		table_name[i] = indexinfo[i].tableName;
-		attributeNames[i] = indexinfo[i].attributeName;
-		types[i] = indexinfo[i].type;
-	}
-	IndexManager index(table_name, attributeNames, types);
 	IndexInfo indexinfo_ = catalog.getIndexInfo(indexName);
 	std::string file_path = "IndexManager\\" + indexinfo_.tableName + "_" + indexinfo_.attributeName + ".txt";
 	std::string type;
@@ -160,7 +139,7 @@ bool API::dropIndex(std::string indexName)
 			break;
 		}
 	}
-	index.dropIndex(file_path, type);
+	this->im->dropIndex(file_path, type);
 	catalog.dropIndex(indexName);
 
 	file_path = "IndexManager\\" + indexinfo_.tableName + "_" + indexinfo_.attributeName + ".txt";
