@@ -60,6 +60,7 @@ void CatalogManager::createTable(const std::string tableName, const std::vector<
 			if (buf[j * 1024] == '#' || buf[j * 1024] == '\0' || buf[j * 1024] == ' ') {
 				strncpy_s(buf + 1024 * j, PAGESIZE - 1024 * j, info.c_str(), 1024);
 				bm.modifyPage(pageId);
+				bm.flushPage(pageId, TableInfoPath, i);
 				return;
 			}
 		}
@@ -68,7 +69,7 @@ void CatalogManager::createTable(const std::string tableName, const std::vector<
 	int pageId = bm.getPageId(TableInfoPath, blockNum);
 	strncpy_s(buf, 4096, info.c_str(), 1024);
 	bm.modifyPage(pageId);
-
+	bm.flushPage(pageId, TableInfoPath, blockNum);
 }
 
 bool CatalogManager::hasTable(const std::string tableName) {
