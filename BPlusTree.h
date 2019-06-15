@@ -77,7 +77,7 @@ public:
 template <typename T>
 btree_node<T>* BPlusTree<T>::btree_node_new()
 {
-	btree_node<T> *node = (btree_node<T> *)malloc(sizeof(btree_node<T>));
+	btree_node<T> *node = new btree_node<T>;
 	if (NULL == node) {
 		return NULL;
 	}
