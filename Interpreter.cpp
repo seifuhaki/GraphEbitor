@@ -336,7 +336,8 @@ void Interpreter::selectAllFrom() {
 	tableName = this->instructionList[3];
 
 	if (this->instructionList.size() == 4) {
-		api.selectRecord(tableName);
+		Table tb = api.selectRecord(tableName);
+		tb.showTable();
 		std::cout << "Operation succeeds." << std::endl;
 		// select * from ... (API)
 		return;
@@ -384,7 +385,8 @@ void Interpreter::selectAllFrom() {
 			index++;
 		}
 	}
-	api.selectRecord(tableName, attributeNames, relations, values);
+	Table tb = api.selectRecord(tableName, attributeNames, relations, values);
+	tb.showTable();
 	std::cout << "Operation succeeds." << std::endl;
 	// select * from ... where ... and ... (API)
 }
