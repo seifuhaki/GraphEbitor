@@ -456,8 +456,8 @@ void Interpreter::dropIndex() {
 
 	indexName = this->instructionList[2];
 
-	//api.dropIndex(indexName);
-	//std::cout << "Operation succeeds." << std::endl;
+	api.dropIndex(indexName);
+	std::cout << "Operation succeeds." << std::endl;
 	// drop index ... (API)
 
 }
@@ -548,7 +548,7 @@ void Interpreter::createTable() {
 				continue;
 			}
 		}
-		if (this->instructionList[index].find('(') != std::string::npos) {
+		if (this->instructionList[index].size() <= 9) {
 			token = this->instructionList[index];
 			if (!(token.size() == 3 && token.substr(0, 3) == "int") && !(token.size() == 5 && token.substr(0, 5) == "float") && !(token.size() > 4 && token.substr(0, 4) == "char")) {
 				throw syntaxError();
@@ -629,13 +629,13 @@ void Interpreter::createTable() {
 	}
 
 	primaryKey = this->instructionList[index];
-	
+
 	for (std::size_t i = 0; i < unique.size(); i++) {
 		if (attributeNames[i] == primaryKey) {
 			unique[i] = true;
 		}
 	}
-	
+
 	TableInfo tableinfo;
 	tableinfo.attributeNames = attributeNames;
 	tableinfo.types = types;
