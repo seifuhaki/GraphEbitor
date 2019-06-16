@@ -201,7 +201,7 @@ int RecordManager::deleteRecord(std::string tableName, std::string target_attr, 
 		//有索引，通过索引获得块号
 		std::vector<int> block_ids;
 		//通过索引获取满足条件的记录所在的块号
-		searchWithIndex(tmpName, target_attr, where, block_ids);
+		searchWithIndex(tmpName, target_attr, where, block_ids,&im);
 		for (int i = 0; i < block_ids.size(); i++) {
 			count += conditionDeleteInBlock(tmpName, block_ids[i], attr, index, where,im);
 		}
@@ -247,7 +247,7 @@ Table RecordManager::selectRecord(std::string tableName, std::string resultTable
 	return table;
 }
 
-Table RecordManager::selectRecord(std::string tableName, std::string target_attr, Where where, std::string result_table_name) {
+Table RecordManager::selectRecord(std::string tableName, std::string target_attr, Where where, IndexManager* im,std::string result_table_name) {
 	std::string tmpName = tableName;
 	tableName = tableName + ".txt";
 	//检测表是否存在
@@ -283,7 +283,7 @@ Table RecordManager::selectRecord(std::string tableName, std::string target_attr
 	if (flag == true && where.relation_character != NOT_EQUAL) {
 		std::vector<int> block_ids;
 		//使用索引获取满足条件的记录所在块号
-		searchWithIndex(tmpName, target_attr, where, block_ids);
+		searchWithIndex(tmpName, target_attr, where, block_ids,im);
 		for (int i = 0; i < block_ids.size(); i++) {
 			conditionSelectInBlock(tmpName, block_ids[i], attr, index, where, v);
 		}
@@ -446,7 +446,7 @@ int RecordManager::getTupleLength(char* p) {
 	return len;
 }
 //在块中进行条件删除
-int RecordManager::conditionDeleteInBlock(std::string tableName, int block_id, TableInfo attr, int index, Where where,IndexManager& im) {
+int RecordManager::conditionDeleteInBlock(std::string tableName, int block_id, TableInfo attr, int index, Where where,IndexManager&im) {
 	//获取当前块的句柄
 	std::string tmpName = tableName;
 	tableName = tableName + ".txt";//新增
@@ -503,19 +503,8 @@ int RecordManager::conditionDeleteInBlock(std::string tableName, int block_id, T
 	return count;
 }
 //带索引查找
-void RecordManager::searchWithIndex(std::string tableName, std::string attributeName, Where where, std::vector<int>& block_ids) {
+void RecordManager::searchWithIndex(std::string tableName, std::string attributeName, Where where, std::vector<int>& block_ids,IndexManager* im) {
 	std::string file_path = "IndexManager\\" + tableName + "_" + attributeName + ".txt";
-	//构造所有的Index
-	std::vector<std::string> table_name;
-	std::vector<std::string> attributeNames;
-	std::vector<std::string> types;
-	std::vector<IndexInfo> indexinfo = cm.getIndexInfo();
-	for (int i = 0; i < indexinfo.size(); i++) {
-		table_name[i] = indexinfo[i].tableName;
-		attributeNames[i] = indexinfo[i].attributeName;
-		types[i] = indexinfo[i].type;
-	}
-	IndexManager im(table_name, attributeNames, types);
 	std::vector<std::string> relations;
 	switch (where.relation_character) {
 	case LESS: {
@@ -554,7 +543,7 @@ void RecordManager::searchWithIndex(std::string tableName, std::string attribute
 		searchKeys.push_back(std::to_string(where.data.dataf));
 	else searchKeys.push_back(where.data.datas);
 
-	std::vector<Location> Ls = im.searchRange(searchTables, relations, searchTypes, searchKeys);
+	std::vector<Location> Ls = im->searchRange(searchTables, relations, searchTypes, searchKeys);
 	for (std::size_t i = 0; i < Ls.size(); i++) {
 		std::cout << Ls[i].blockNum << std::endl;
 	}

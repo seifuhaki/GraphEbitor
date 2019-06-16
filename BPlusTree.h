@@ -637,7 +637,7 @@ std::vector<Location> BPlusTree<T>::btree_searchRange(btree_node<T> *root, T key
 		} while (iter != leftmost);
 		return results;
 	}
-	else if (relation == "==") {
+	else if (relation == "=") {
 		btree_node<T> *leftmost = root;
 		while (false == leftmost->is_leaf) {
 			leftmost = leftmost->p[0];

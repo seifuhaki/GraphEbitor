@@ -56,7 +56,7 @@ public:
 	//功能：返回包含所有目标属性满足Where条件的记录的表
 	//异常：如果表不存在，抛出table_not_exist异常。如果属性不存在，抛出attribute_not_exist异常。
 	//如果Where条件中的两个数据类型不匹配，抛出data_type_conflict异常。
-    Table selectRecord(std::string table_name, std::string target_attr, Where where, std::string result_table_name = "tmp_table");
+    Table selectRecord(std::string table_name, std::string target_attr, Where where,IndexManager* im,std::string result_table_name = "tmp_table_name");
 	void createIndex(IndexManager* index_manager, std::string tableName, std::string target_attr);
 private:
 	//获取文件大小
@@ -72,7 +72,7 @@ private:
 	//判断插入的记录是否和其他记录冲突
 	bool isConflict(std::vector<Tuple>& tuples, std::vector<data>& v, int index);
 	//带索引查找
-	void searchWithIndex(std::string tableName, std::string attributeName, Where where, std::vector<int>& block_ids);
+	void searchWithIndex(std::string tableName, std::string attributeName, Where where, std::vector<int>& block_ids, IndexManager* im);
 	//在块中进行条件删除
 	int conditionDeleteInBlock(std::string table_name, int block_id, TableInfo attr, int index, Where where, IndexManager& im);
 	//在块中进行条件查询

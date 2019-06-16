@@ -41,7 +41,7 @@ Table API::selectRecord(std::string table_name, std::vector<std::string> target_
 	else if (type == "float") { where[0].data.type = "float"; where[0].data.dataf = std::stof(values[0]); }
 	else { where[0].data.type = type; where[0].data.datas = values[0]; }
 	Table table;
-	table = record.selectRecord(table_name, target_attr[0], where[0]);
+	table = record.selectRecord(table_name, target_attr[0], where[0],im);
 	for (int i = 1; i < values.size(); i++) {
 		where.push_back(Where());
 		if (relations[i] == "=")where[i].relation_character = EQUAL;
@@ -54,7 +54,7 @@ Table API::selectRecord(std::string table_name, std::vector<std::string> target_
 		if (type == "int") { where[i].data.type = "int"; where[i].data.datai = std::stol(values[i]); }
 		else if (type == "float") { where[i].data.type = "float"; where[i].data.dataf = std::stof(values[i]); }
 		else { where[0].data.type = type; where[i].data.datas = values[i]; }
-		Table table_ = record.selectRecord(table_name, target_attr[i], where[i]);
+		Table table_ = record.selectRecord(table_name, target_attr[i], where[i],im);
 		table = joinTable(table, table_, target_attr[0], where[0]);
 	}
 	return table;
