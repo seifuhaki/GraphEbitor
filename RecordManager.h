@@ -57,8 +57,10 @@ public:
 	//异常：如果表不存在，抛出table_not_exist异常。如果属性不存在，抛出attribute_not_exist异常。
 	//如果Where条件中的两个数据类型不匹配，抛出data_type_conflict异常。
     Table selectRecord(std::string table_name, std::string target_attr, Where where, std::string result_table_name = "tmp_table");
-	void RecordManager::createIndex(IndexManager* index_manager, std::string tableName, std::string target_attr);
+	void createIndex(IndexManager* index_manager, std::string tableName, std::string target_attr);
 private:
+	//获取文件大小
+	int getBlockNum(std::string table_name);
 	//从内存中读取一个tuple
 	Tuple readTuple(char* p, TableInfo attr);
 	//获取一个tuple的长度
@@ -77,5 +79,6 @@ private:
 	void conditionSelectInBlock(std::string table_name, int block_id, TableInfo attr, int index, Where where, std::vector<Tuple>& v);
 
 	BufferManager bm;
+	CatalogManager cm;
 };
 #endif

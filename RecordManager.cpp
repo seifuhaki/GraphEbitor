@@ -15,7 +15,6 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple, IndexManag
 {
 	std::string tmpName = tableName;
 	tableName = tableName + ".txt";
-	CatalogManager cm;
 	//检测表是否存在
 	if (!cm.hasTable(tmpName)) {
 		throw tableNotExists();
@@ -37,7 +36,7 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple, IndexManag
 		}
 	}
 	//异常判断完成
-	int blockNum = cm.getBlockNum(tableName);
+	int blockNum = getBlockNum(tableName);
 	if (blockNum <= 0)blockNum = 1;
 	char* p = bm.getPage(tableName, blockNum - 1);
 	int i;
@@ -62,7 +61,7 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple, IndexManag
 	len += v.size() + 7;
 	int blockOffset;//最终记录所插入的块的编号
 	//如果剩余的空间足够插入该tuple
-	if (PAGESIZE - i >= len) {
+	if (PAGESIZE-200 - i >= len) {
 		blockOffset = blockNum - 1;
 		//插入该元组
 		insertRecord1(p, i, len, v);
@@ -106,13 +105,12 @@ int RecordManager::deleteRecord(std::string tableName)
 {
 	std::string tmpName = tableName;
 	tableName = tableName + ".txt";
-	CatalogManager cm;
 	//检测表是否存在
 	if (!cm.hasTable(tmpName)) {
 		throw tableNotExists();
 	}
 
-	int blockNum = cm.getBlockNum(tableName);
+	int blockNum = getBlockNum(tableName);
 	//表文件大小为0时直接返回
 	if (blockNum <= 0)
 		return 0;
@@ -167,7 +165,6 @@ int RecordManager::deleteRecord(std::string tableName, std::string target_attr, 
 {
 	std::string tmpName = tableName;
 	tableName = tableName + ".txt";
-	CatalogManager cm;
 	if (!cm.hasTable(tmpName)) {
 		throw tableNotExists();
 	}
@@ -210,7 +207,7 @@ int RecordManager::deleteRecord(std::string tableName, std::string target_attr, 
 		}
 	}
 	else {
-		int blockNum = cm.getBlockNum(tableName);
+		int blockNum = getBlockNum(tableName);
 		if (blockNum <= 0)return 0;
 		for (int i = 0; i < blockNum; i++) {
 			count += conditionDeleteInBlock(tmpName, i, attr, index, where,im);
@@ -223,12 +220,11 @@ Table RecordManager::selectRecord(std::string tableName, std::string resultTable
 {
 	std::string tmpName = tableName;
 	tableName = tableName + ".txt";
-	CatalogManager cm;
 	if (!cm.hasTable(tmpName)) {
 		throw tableNotExists();
 	}
 
-	int blockNum = cm.getBlockNum(tableName);
+	int blockNum = getBlockNum(tableName);
 	if (blockNum <= 0)blockNum = 1;
 	TableInfo attr = cm.getTableInfo(tmpName);
 	Table table(resultTableName, attr);
@@ -254,7 +250,6 @@ Table RecordManager::selectRecord(std::string tableName, std::string resultTable
 Table RecordManager::selectRecord(std::string tableName, std::string target_attr, Where where, std::string result_table_name) {
 	std::string tmpName = tableName;
 	tableName = tableName + ".txt";
-	CatalogManager cm;
 	//检测表是否存在
 	if (!cm.hasTable(tmpName)) {
 		throw tableNotExists();
@@ -295,7 +290,7 @@ Table RecordManager::selectRecord(std::string tableName, std::string target_attr
 	}
 	else {
 		//获取文件所占的块的数量
-		int block_num = cm.getBlockNum(tableName);
+		int block_num = getBlockNum(tableName);
 		//处理文件大小为0的特殊情况
 		if (block_num <= 0)
 			block_num = 1;
@@ -310,7 +305,6 @@ Table RecordManager::selectRecord(std::string tableName, std::string target_attr
 void RecordManager::createIndex(IndexManager* index_manager, std::string tableName, std::string target_attr) {
 	std::string tmpName = tableName;
 	tableName = tableName + ".txt";
-	CatalogManager cm;
 	//检测表是否存在
 	if (!cm.hasTable(tmpName)) {
 		throw tableNotExists();
@@ -331,7 +325,7 @@ void RecordManager::createIndex(IndexManager* index_manager, std::string tableNa
 	//异常检测完成
 
 	//获取文件所占的块的数量
-	int block_num = cm.getBlockNum(tableName);
+	int block_num = getBlockNum(tableName);
 	//处理文件大小为0的特殊情况
 	if (block_num <= 0)
 		block_num = 1;
@@ -362,6 +356,16 @@ void RecordManager::createIndex(IndexManager* index_manager, std::string tableNa
 			p = p + len;
 		}
 	}
+}
+//获取文件大小
+int RecordManager::getBlockNum(std::string table_name) {
+	char* p;
+	int block_num = -1;
+	do {
+		p = bm.getPage(table_name, block_num + 1);
+		block_num++;
+	} while (p[0] != '\0');
+	return block_num;
 }
 //Insert的辅助函数
 void RecordManager::insertRecord1(char* p, int offset, int len, const std::vector<data>& v)
@@ -501,7 +505,6 @@ int RecordManager::conditionDeleteInBlock(std::string tableName, int block_id, T
 //带索引查找
 void RecordManager::searchWithIndex(std::string tableName, std::string attributeName, Where where, std::vector<int>& block_ids) {
 	std::string file_path = "IndexManager\\" + tableName + "_" + attributeName + ".txt";
-	CatalogManager cm;
 	//构造所有的Index
 	std::vector<std::string> table_name;
 	std::vector<std::string> attributeNames;

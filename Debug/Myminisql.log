@@ -1,58 +1,34 @@
-﻿  Interpreter.cpp
-c:\users\西風葉輝\source\repos\myminisql\myminisql\api.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-c:\users\西風葉輝\source\repos\myminisql\myminisql\basic.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-c:\users\西風葉輝\source\repos\myminisql\myminisql\interpreter.cpp(314): warning C4018: “<=”: 有符号/无符号不匹配
-  RecordManager.cpp
+﻿  RecordManager.cpp
 c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 c:\users\西風葉輝\source\repos\myminisql\myminisql\basic.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
 c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(5): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.17763.0\ucrt\stdio.h(208): note: 参见“fopen”的声明
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(26): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(33): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(48): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(55): warning C4244: “初始化”: 从“int”转换到“float”，可能丢失数据
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(56): warning C4244: “+=”: 从“float”转换到“int”，可能丢失数据
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(85): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(126): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(138): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(180): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(188): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(208): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(266): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(292): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(321): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(374): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(376): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(405): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(510): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(603): warning C4018: “<”: 有符号/无符号不匹配
+c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(25): warning C4018: “<”: 有符号/无符号不匹配
+c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(32): warning C4018: “<”: 有符号/无符号不匹配
+c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(47): warning C4018: “<”: 有符号/无符号不匹配
+c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(54): warning C4244: “初始化”: 从“int”转换到“float”，可能丢失数据
+c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(55): warning C4244: “+=”: 从“float”转换到“int”，可能丢失数据
+c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(84): warning C4018: “<”: 有符号/无符号不匹配
+c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(124): warning C4018: “<”: 有符号/无符号不匹配
+c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(136): warning C4018: “<”: 有符号/无符号不匹配
+c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(177): warning C4018: “<”: 有符号/无符号不匹配
+c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(185): warning C4018: “<”: 有符号/无符号不匹配
+c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(205): warning C4018: “<”: 有符号/无符号不匹配
+c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(261): warning C4018: “<”: 有符号/无符号不匹配
+c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(287): warning C4018: “<”: 有符号/无符号不匹配
+c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(315): warning C4018: “<”: 有符号/无符号不匹配
+c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(378): warning C4018: “<”: 有符号/无符号不匹配
+c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(380): warning C4018: “<”: 有符号/无符号不匹配
+c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(409): warning C4018: “<”: 有符号/无符号不匹配
+c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(513): warning C4018: “<”: 有符号/无符号不匹配
+c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(606): warning C4018: “<”: 有符号/无符号不匹配
 c:\users\西風葉輝\source\repos\myminisql\myminisql\template.h(61): warning C4018: “<”: 有符号/无符号不匹配
-  c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(381): note: 参见对正在编译的函数 模板 实例化“void copyString<int>(char *,int &,T)”的引用
+  c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.cpp(385): note: 参见对正在编译的函数 模板 实例化“void copyString<int>(char *,int &,T)”的引用
           with
           [
               T=int
           ]
-  api.cpp
-c:\users\西風葉輝\source\repos\myminisql\myminisql\api.cpp : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-c:\users\西風葉輝\source\repos\myminisql\myminisql\api.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-c:\users\西風葉輝\source\repos\myminisql\myminisql\basic.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-c:\users\西風葉輝\source\repos\myminisql\myminisql\api.cpp(13): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\api.cpp(45): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\api.cpp(90): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\api.cpp(106): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\api.cpp(128): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\api.cpp(145): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\api.cpp(173): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\api.cpp(195): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\西風葉輝\source\repos\myminisql\myminisql\api.cpp(220): warning C4018: “<”: 有符号/无符号不匹配
-  main.cpp
-c:\users\西風葉輝\source\repos\myminisql\myminisql\api.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-c:\users\西風葉輝\source\repos\myminisql\myminisql\basic.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-c:\users\西風葉輝\source\repos\myminisql\myminisql\recordmanager.h : warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-  正在生成代码...
 c:\users\西風葉輝\source\repos\myminisql\myminisql\template.h(54): warning C4715: “isSatisfied<int>”: 不是所有的控件路径都返回值
 c:\users\西風葉輝\source\repos\myminisql\myminisql\template.h(54): warning C4715: “isSatisfied<float>”: 不是所有的控件路径都返回值
 c:\users\西風葉輝\source\repos\myminisql\myminisql\template.h(54): warning C4715: “isSatisfied<std::basic_string<char,std::char_traits<char>,std::allocator<char> > >”: 不是所有的控件路径都返回值
