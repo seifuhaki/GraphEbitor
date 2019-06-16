@@ -124,9 +124,9 @@ int RecordManager::deleteRecord(std::string tableName)
 	std::vector<std::string> types;
 	std::vector<IndexInfo> indexinfo = cm.getIndexInfo();
 	for (int i = 0; i < indexinfo.size(); i++) {
-		table_name[i] = indexinfo[i].tableName;
-		attributeNames[i] = indexinfo[i].attributeName;
-		types[i] = indexinfo[i].type;
+		table_name.push_back(indexinfo[i].tableName);
+		attributeNames.push_back(indexinfo[i].attributeName);
+		types.push_back(indexinfo[i].type);
 	}
 	IndexManager im(table_name, attributeNames, types);
 	//遍历所有块

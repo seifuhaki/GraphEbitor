@@ -51,9 +51,9 @@ Table::Table(std::string title, TableInfo attr) {
 Table::Table(const Table &table_in) {
 	this->attr_ = table_in.attr_;
 	this->tableName = table_in.tableName;
-	for (int index = 0; index < tuple_.size(); index++)
+	for (int index = 0; index < table_in.tuple_.size(); index++)
 		this->tuple_.push_back(table_in.tuple_[index]);
-	for (int index = 0; index < index_.size(); index++)
+	for (int index = 0; index < table_in.index_.size(); index++)
 		this->index_.push_back(table_in.index_[index]);
 }
 

@@ -29,6 +29,7 @@ Table API::selectRecord(std::string table_name)
 Table API::selectRecord(std::string table_name, std::vector<std::string> target_attr, std::vector<std::string> relations, std::vector<std::string> values)
 {
 	std::vector<Where> where;
+	where.push_back(Where());
 	if (relations[0] == "=")where[0].relation_character = EQUAL;
 	else if (relations[0] == "<>")where[0].relation_character = NOT_EQUAL;
 	else if (relations[0] == "<")where[0].relation_character = LESS;
@@ -42,6 +43,7 @@ Table API::selectRecord(std::string table_name, std::vector<std::string> target_
 	Table table;
 	table = record.selectRecord(table_name, target_attr[0], where[0]);
 	for (int i = 1; i < values.size(); i++) {
+		where.push_back(Where());
 		if (relations[i] == "=")where[i].relation_character = EQUAL;
 		else if (relations[i] == "<>")where[i].relation_character = NOT_EQUAL;
 		else if (relations[i] == "<")where[i].relation_character = LESS;
@@ -102,8 +104,10 @@ bool API::createTable(std::string tableName, TableInfo attribute, std::string pr
 	catalog.createTable(tableName, attribute.attributeNames, attribute.types, attribute.unique, primary);
 	std::string file_path = "IndexManager\\" + tableName + "_" + primary + ".txt";
 	for (int i = 0; i < attribute.attributeNames.size(); i++) {
-		if(primary == attribute.attributeNames[i])
-		this->im->createIndex(file_path, attribute.types[i]);
+		if (primary == attribute.attributeNames[i]) {
+			//catalog.createIndex(tableName, primary, primary);
+			this->im->createIndex(file_path, attribute.types[i]);
+		}
 	}
 	return true;
 }
