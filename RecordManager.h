@@ -72,7 +72,7 @@ private:
 	//带索引查找
 	void searchWithIndex(std::string tableName, std::string attributeName, Where where, std::vector<int>& block_ids);
 	//在块中进行条件删除
-	int conditionDeleteInBlock(std::string table_name, int block_id, TableInfo attr, int index, Where where);
+	int conditionDeleteInBlock(std::string table_name, int block_id, TableInfo attr, int index, Where where, IndexManager& im);
 	//在块中进行条件查询
 	void conditionSelectInBlock(std::string table_name, int block_id, TableInfo attr, int index, Where where, std::vector<Tuple>& v);
 
