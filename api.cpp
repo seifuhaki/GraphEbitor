@@ -105,7 +105,7 @@ bool API::createTable(std::string tableName, TableInfo attribute, std::string pr
 	std::string file_path = "IndexManager\\" + tableName + "_" + primary + ".txt";
 	for (int i = 0; i < attribute.attributeNames.size(); i++) {
 		if (primary == attribute.attributeNames[i]) {
-			//catalog.createIndex(tableName, primary, primary);
+			catalog.createIndex(tableName, primary, primary);
 			this->im->createIndex(file_path, attribute.types[i]);
 		}
 	}
