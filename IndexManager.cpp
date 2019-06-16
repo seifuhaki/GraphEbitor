@@ -9,7 +9,7 @@ IndexManager::IndexManager(const std::vector<std::string> tableNames, const std:
 	for (std::size_t i = 0; i < tableNames.size(); i++) {
 		createIndex("IndexManager\\" + tableNames[i] + "_" + attributeNames[i] + ".txt", types[i]);
 	}
-			
+
 }
 
 IndexManager::~IndexManager()
@@ -57,23 +57,23 @@ void IndexManager::createIndex(std::string file_path, std::string type)
 
 void IndexManager::dropIndex(std::string file_path, std::string type)
 {
-	//¸ù¾İ²»Í¬Êı¾İÀàĞÍ²ÉÓÃ¶ÔÓ¦µÄ´¦Àí·½Ê½
+	//æ ¹æ®ä¸åŒæ•°æ®ç±»å‹é‡‡ç”¨å¯¹åº”çš„å¤„ç†æ–¹å¼
 	if (type == "int") {
-		//²éÕÒÂ·¾¶¶ÔÓ¦µÄ¼üÖµ¶Ô
+		//æŸ¥æ‰¾è·¯å¾„å¯¹åº”çš„é”®å€¼å¯¹
 		intMap::iterator itInt = indexIntMap.find(file_path);
-		if (itInt == indexIntMap.end()) { //Î´ÕÒµ½
+		if (itInt == indexIntMap.end()) { //æœªæ‰¾åˆ°
 			// cout << "Error:in drop index, no index " << file_path <<" exits" << endl;
 			return;
 		}
 		else {
-			//É¾³ı¶ÔÓ¦µÄB+Ê÷
+			//åˆ é™¤å¯¹åº”çš„B+æ ‘
 			delete itInt->second;
 			std::remove(file_path.c_str());
-			//Çå¿Õ¸Ã¼üÖµ¶Ô
+			//æ¸…ç©ºè¯¥é”®å€¼å¯¹
 			indexIntMap.erase(itInt);
 		}
 	}
-	else if (type == "float") { //Í¬ÉÏ
+	else if (type == "float") { //åŒä¸Š
 		floatMap::iterator itFloat = indexFloatMap.find(file_path);
 		if (itFloat == indexFloatMap.end()) {
 			// cout << "Error:in drop index, no index " << file_path <<" exits" << endl;
@@ -87,7 +87,7 @@ void IndexManager::dropIndex(std::string file_path, std::string type)
 	}
 	else {
 		stringMap::iterator itString = indexStringMap.find(file_path);
-		if (itString == indexStringMap.end()) { //Í¬ÉÏ
+		if (itString == indexStringMap.end()) { //åŒä¸Š
 			// cout << "Error:in drop index, no index " << file_path <<" exits" << endl;
 			return;
 		}
@@ -106,17 +106,17 @@ Location IndexManager::findIndex(std::string file_path, std::string type, std::s
 
 	if (type == "int") {
 		intMap::iterator itInt = indexIntMap.find(file_path);
-		if (itInt == indexIntMap.end()) { //Î´ÕÒµ½
+		if (itInt == indexIntMap.end()) { //æœªæ‰¾åˆ°
 			// cout << "Error:in search index, no index " << file_path <<" exits" << endl;
 			throw indexNotExist();
 		}
 		else
-			//ÕÒµ½Ôò·µ»Ø¶ÔÓ¦µÄ¼üÖµ
+			//æ‰¾åˆ°åˆ™è¿”å›å¯¹åº”çš„é”®å€¼
 			return itInt->second->btree_find(itInt->second->roots, atoi(key.c_str()));
 	}
 	else if (type == "float") {
 		floatMap::iterator itFloat = indexFloatMap.find(file_path);
-		if (itFloat == indexFloatMap.end()) { //Í¬ÉÏ
+		if (itFloat == indexFloatMap.end()) { //åŒä¸Š
 			// cout << "Error:in search index, no index " << file_path <<" exits" << endl;
 			throw indexNotExist();
 		}
@@ -125,7 +125,7 @@ Location IndexManager::findIndex(std::string file_path, std::string type, std::s
 	}
 	else {
 		stringMap::iterator itString = indexStringMap.find(file_path);
-		if (itString == indexStringMap.end()) { //Í¬ÉÏ
+		if (itString == indexStringMap.end()) { //åŒä¸Š
 			// cout << "Error:in search index, no index " << file_path <<" exits" << endl;
 			throw indexNotExist();
 		}
@@ -149,9 +149,9 @@ void IndexManager::insertIndex(std::string file_path, std::string type, std::str
 			d.blockNum = blockNum;
 			d.offset = offset;
 			d.key = atoi(key.c_str());
-			itInt->second->btree_insert(itInt->second->roots, d);
+			itInt->second->roots = itInt->second->btree_insert(itInt->second->roots, d);
 		}
-			
+
 	}
 	else if (type == "float") {
 		floatMap::iterator itFloat = indexFloatMap.find(file_path);
@@ -164,7 +164,7 @@ void IndexManager::insertIndex(std::string file_path, std::string type, std::str
 			d.blockNum = blockNum;
 			d.offset = offset;
 			d.key = atof(key.c_str());
-			itFloat->second->btree_insert(itFloat->second->roots, d);
+			itFloat->second->roots = itFloat->second->btree_insert(itFloat->second->roots, d);
 		}
 	}
 	else {
@@ -178,7 +178,7 @@ void IndexManager::insertIndex(std::string file_path, std::string type, std::str
 			d.blockNum = blockNum;
 			d.offset = offset;
 			d.key = key;
-			itString->second->btree_insert(itString->second->roots, d);
+			itString->second->roots = itString->second->btree_insert(itString->second->roots, d);
 		}
 	}
 
@@ -200,7 +200,7 @@ void IndexManager::deleteIndexByKey(std::string file_path, std::string type, std
 			d.blockNum = 0;
 			d.offset = 0;
 			d.key = atoi(key.c_str());
-			itInt->second->btree_delete(itInt->second->roots, d);
+			itInt->second->roots = itInt->second->btree_delete(itInt->second->roots, d);
 		}
 	}
 	else if (type == "float") {
@@ -214,7 +214,7 @@ void IndexManager::deleteIndexByKey(std::string file_path, std::string type, std
 			d.blockNum = 0;
 			d.offset = 0;
 			d.key = atof(key.c_str());
-			itFloat->second->btree_delete(itFloat->second->roots, d);
+			itFloat->second->roots = itFloat->second->btree_delete(itFloat->second->roots, d);
 		}
 	}
 	else {
@@ -228,7 +228,7 @@ void IndexManager::deleteIndexByKey(std::string file_path, std::string type, std
 			d.blockNum = 0;
 			d.offset = 0;
 			d.key = key;
-			itString->second->btree_delete(itString->second->roots, d);
+			itString->second->roots = itString->second->btree_delete(itString->second->roots, d);
 		}
 	}
 
@@ -267,7 +267,7 @@ std::vector<Location> IndexManager::searchRange(const std::vector<std::string> f
 				throw indexNotExist();
 			}
 			else {
-				float x  = atof(keys[i].c_str());
+				float x = atof(keys[i].c_str());
 				itFloat->second->btree_searchRange(itFloat->second->roots, x, relations[i]);
 			}
 		}
@@ -286,7 +286,7 @@ std::vector<Location> IndexManager::searchRange(const std::vector<std::string> f
 			}
 		}
 		else {
-			for (std::size_t j = results.size()-1; j >= 0 && j < 999999; j--) {
+			for (std::size_t j = results.size() - 1; j >= 0 && j < 999999; j--) {
 				bool del = true;
 				for (std::size_t k = 0; k < newResults.size(); k++) {
 					if (results[j].blockNum == newResults[k].blockNum && results[j].offset == newResults[k].offset) {
