@@ -72,9 +72,7 @@ public:
 	bool dropIndex(std::string indexName);
 private:
 	//私有函数，用于多条件查询时的and条件合并
-	Table unionTable(Table &table1, Table &table2, std::string target_attr, Where where);
-	//私有函数，用于多条件查询时的or条件合并
-	Table joinTable(Table &table1, Table &table2, std::string target_attr, Where where);
+	Table joinTable(Table& table1, Table& table2, std::vector<std::string> target_attr, std::vector<Where> where, int i);
 
 private:
 	RecordManager record;
@@ -87,4 +85,5 @@ bool sortcmp(const Tuple &tuple1, const Tuple &tuple2);
 //用于对vector对合并时对排序
 bool calcmp(const Tuple &tuple1, const Tuple &tuple2);
 bool isSatisfied(Tuple& tuple, int target_attr, Where where);
+bool isConflict(std::vector<Tuple>& tuples, std::vector<data>& v, int index);
 #endif

@@ -55,7 +55,7 @@ Table API::selectRecord(std::string table_name, std::vector<std::string> target_
 		else if (type == "float") { where[i].data.type = "float"; where[i].data.dataf = std::stof(values[i]); }
 		else { where[i].data.type = type; where[i].data.datas = values[i]; }
 		Table table_ = record.selectRecord(table_name, target_attr[i], where[i],im);
-		table = joinTable(table, table_, target_attr[0], where[0]);
+		table = joinTable(table, table_, target_attr, where,i);
 	}
 	return table;
 }
@@ -155,33 +155,11 @@ bool API::dropIndex(std::string indexName)
 	remove(file_path.c_str());
 	return true;
 }
-//私有函数，用于多条件查询时的or条件合并
-Table API::unionTable(Table &table1, Table &table2, std::string target_attr, Where where)
-{
-	Table result_table(table1);
-	std::vector<Tuple>& result_tuple = result_table.getTuple();
-	std::vector<Tuple> tuple1 = table1.getTuple();
-	std::vector<Tuple> tuple2 = table2.getTuple();
-	result_tuple = tuple1;
-
-	int i;
-	TableInfo attr = table1.getAttr();
-	for (i = 0; i < 32; i++)
-		if (attr.attributeNames[i] == target_attr)
-			break;
-
-	for (int j = 0; j < tuple2.size(); j++)
-		if (!isSatisfied(tuple2[j], i, where))
-			result_tuple.push_back(tuple2[j]);
-
-	std::sort(result_tuple.begin(), result_tuple.end(), sortcmp);
-	return result_table;
-
-}
 //私有函数，用于多条件查询时的and条件合并
-Table API::joinTable(Table &table1, Table &table2, std::string target_attr, Where where)
+Table API::joinTable(Table &table1, Table &table2, std::vector<std::string> target_attr, std::vector<Where> where,int k)
 {
-	Table result_table(table1);
+	Table result_table = Table();
+
 	std::vector<Tuple>& result_tuple = result_table.getTuple();
 	std::vector<Tuple> tuple1 = table1.getTuple();
 	std::vector<Tuple> tuple2 = table2.getTuple();
@@ -189,13 +167,27 @@ Table API::joinTable(Table &table1, Table &table2, std::string target_attr, Wher
 	int i;
 	TableInfo attr = table1.getAttr();
 	for (i = 0; i < 32; i++)
-		if (attr.attributeNames[i] == target_attr)
+		if (attr.attributeNames[i] == target_attr[0])
 			break;
 
 	for (int j = 0; j < tuple2.size(); j++)
-		if (isSatisfied(tuple2[j], i, where))
+		if (isSatisfied(tuple2[j], i, where[0]))
 			result_tuple.push_back(tuple2[j]);
+	attr = table2.getAttr();
+	for (i = 0; i < 32; i++)
+		if (attr.attributeNames[i] == target_attr[k])
+			break;
 
+	for (int j = 0; j < tuple1.size(); j++) {
+		if (isSatisfied(tuple1[j], i, where[k])) {
+			for (int q = 0; q < attr.unique.size(); q++) {
+				if (attr.unique[q] == true) {
+					if (isConflict(result_tuple, tuple1[j].getData(), q) == false)
+						result_tuple.push_back(tuple1[j]);
+				}
+			}	
+		}
+	}
 	std::sort(result_tuple.begin(), result_tuple.end(), sortcmp);
 	return result_table;
 }
@@ -275,6 +267,27 @@ bool isSatisfied(Tuple& tuple, int target_attr, Where where)
 		else return (data[target_attr].datas < where.data.datas);
 	} break;
 	default:break;
+	}
+	return false;
+}
+//判断插入的记录是否和其他记录冲突
+bool isConflict(std::vector<Tuple>& tuples, std::vector<data>& v, int index) {
+	for (int i = 0; i < tuples.size(); i++) {
+		if (tuples[i].isDeleted() == true)
+			continue;
+		std::vector<data> d = tuples[i].getData();
+		if (v[index].type == "int") {
+			if (v[index].datai == d[index].datai)
+				return true;
+		}
+		else if (v[index].type == "float") {
+			if (v[index].dataf == d[index].dataf)
+				return true;
+		}
+		else {
+			if (v[index].datas == d[index].datas)
+				return true;
+		}
 	}
 	return false;
 }

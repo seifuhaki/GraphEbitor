@@ -530,7 +530,8 @@ std::vector<int> RecordManager::searchWithIndex(std::string tableName, std::stri
 	std::vector<int> block_ids;
 	std::vector<Location> Ls = im->searchRange(searchTables, relations, searchTypes, searchKeys);
 	for (std::size_t i = 0; i < Ls.size(); i++) {
-		block_ids.push_back(Ls[i].blockNum);
+		std::vector<int>::iterator result = std::find(block_ids.begin(), block_ids.end(), Ls[i].blockNum);
+		if (result == block_ids.end())block_ids.push_back(Ls[i].blockNum);
 	}
 	return block_ids;
 }
