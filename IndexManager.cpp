@@ -16,19 +16,16 @@ IndexManager::~IndexManager()
 {
 	for (intMap::iterator itInt = indexIntMap.begin(); itInt != indexIntMap.end(); itInt++) {
 		if (itInt->second) {
-			itInt->second->writtenbackToDiskAll();
 			delete itInt->second;
 		}
 	}
 	for (stringMap::iterator itString = indexStringMap.begin(); itString != indexStringMap.end(); itString++) {
 		if (itString->second) {
-			itString->second->writtenbackToDiskAll();
 			delete itString->second;
 		}
 	}
 	for (floatMap::iterator itFloat = indexFloatMap.begin(); itFloat != indexFloatMap.end(); itFloat++) {
 		if (itFloat->second) {
-			itFloat->second->writtenbackToDiskAll();
 			delete itFloat->second;
 		}
 	}
@@ -258,7 +255,6 @@ std::vector<Location> IndexManager::searchRange(const std::vector<std::string> f
 				int x = atoi(keys[i].c_str());
 				newResults = itInt->second->btree_searchRange(itInt->second->roots, x, relations[i]);
 			}
-			int x = atoi(keys[i].c_str());
 
 		}
 		else if (types[i] == "float") {
