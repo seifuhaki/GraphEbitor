@@ -663,6 +663,32 @@ std::vector<Location> BPlusTree<T>::btree_searchRange(btree_node<T> *root, T key
 		} while (iter != leftmost);
 		return results;
 	}
+	else if (relation == "<>") {
+		btree_node<T> *leftmost = root;
+		while (false == leftmost->is_leaf) {
+			leftmost = leftmost->p[0];
+		}
+		btree_node<T> *iter = leftmost;
+		int cnt = 0;
+		do {
+			bool ok = false;
+			for (int i = 0; i < iter->num; i++) {
+				if (iter->k[i].key != key) {
+					Location L;
+					L.blockNum = iter->k[i].blockNum;
+					L.offset = iter->k[i].offset;
+					results.push_back(L);
+					ok = true;
+					break;
+				}
+			}
+			if (ok) {
+				break;
+			}
+			iter = iter->next;
+		} while (iter != leftmost);
+		return results;
+	}
 	throw illegalIdentifier();
 }
 #endif
