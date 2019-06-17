@@ -494,6 +494,9 @@ void BPlusTree<T>::writtenbackToDiskAll() {
 				//std::cout << info << std::endl;
 			}
 			strncpy_s(buf, PAGESIZE, info.c_str(), strlen(info.c_str()));
+			for (std::string::size_type j = strlen(info.c_str()); j < PAGESIZE; j++) {
+				buf[j] = 0;
+			}
 			bm.modifyPage(pageId);
 			cnt++;
 			iter = iter->next;
