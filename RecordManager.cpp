@@ -31,8 +31,26 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple, IndexManag
 	//检测是否存在unique冲突
 	for (int i = 0; i < attr.unique.size(); i++) {
 		if (attr.unique[i] == true) {
-			if (isConflict(tuples, v, i) == true)
-				throw uniqueConflict();
+			if (cm.attributeHasIndex(tmpName, attr.attributeNames[i]) == true) {
+				try {
+					std::string key;
+					if (attr.types[i] == "int")key = std::to_string(v[i].datai);
+					else if (attr.types[i] == "float")key = std::to_string(v[i].dataf);
+					else key = v[i].datas;
+					std::string file_path = "IndexManager\\" + tmpName + "_" + attr.attributeNames[i] + ".txt";
+					im->findIndex(file_path, attr.types[i], key);
+					//if (isConflict(tuples, v, i) == true)
+						throw uniqueConflict();
+				}
+				catch (targetNotFound& e) {
+					//if (isConflict(tuples, v, i) == true)
+						//throw uniqueConflict();
+				}
+			}
+			else {
+				if (isConflict(tuples, v, i) == true)
+					throw uniqueConflict();
+			}
 		}
 	}
 	//异常判断完成
@@ -487,6 +505,47 @@ int RecordManager::conditionDeleteInBlock(std::string tableName, int block_id, T
 	bm.modifyPage(page_id);
 	return count;
 }
+//在块中进行条件查询
+void RecordManager::conditionSelectInBlock(std::string table_name, int block_id, TableInfo attr, int index, Where where, std::vector<Tuple>& v) {
+	//获取当前块的句柄
+	table_name = table_name + ".txt";//新增
+	char* p = bm.getPage(table_name, block_id);
+	char* t = p;
+	//遍历所有记录
+	while (*p != '\0' && p < t + PAGESIZE) {
+		//读取记录
+		Tuple tuple = readTuple(p, attr);
+		//如果记录已被删除，跳过该记录
+		if (tuple.isDeleted() == true) {
+			int len = getTupleLength(p);
+			p = p + len;
+			continue;
+		}
+		std::vector<data> d = tuple.getData();
+		//根据属性类型选择
+		if (attr.types[index] == "int") {
+			//满足条件，则将该元组添加到table
+			if (isSatisfied(d[index].datai, where.data.datai, where.relation_character) == true) {
+				v.push_back(tuple);
+			}
+			//不满足条件，跳过该记录
+		}
+		//同case1
+		else if (attr.types[index] == "float") {
+			if (isSatisfied(d[index].dataf, where.data.dataf, where.relation_character) == true) {
+				v.push_back(tuple);
+			}
+		}
+		//同case1
+		else {
+			if (isSatisfied(d[index].datas, where.data.datas, where.relation_character) == true) {
+				v.push_back(tuple);
+			}
+		}
+		int len = getTupleLength(p);
+		p = p + len;
+	}
+}
 //带索引查找
 std::vector<int> RecordManager::searchWithIndex(std::string tableName, std::string attributeName, Where where, IndexManager*im) {
 	std::string file_path = "IndexManager\\" + tableName + "_" + attributeName + ".txt";
@@ -534,47 +593,6 @@ std::vector<int> RecordManager::searchWithIndex(std::string tableName, std::stri
 		if (result == block_ids.end())block_ids.push_back(Ls[i].blockNum);
 	}
 	return block_ids;
-}
-//在块中进行条件查询
-void RecordManager::conditionSelectInBlock(std::string table_name, int block_id, TableInfo attr, int index, Where where, std::vector<Tuple>& v) {
-	//获取当前块的句柄
-	table_name = table_name + ".txt";//新增
-	char* p = bm.getPage(table_name, block_id);
-	char* t = p;
-	//遍历所有记录
-	while (*p != '\0' && p < t + PAGESIZE) {
-		//读取记录
-		Tuple tuple = readTuple(p, attr);
-		//如果记录已被删除，跳过该记录
-		if (tuple.isDeleted() == true) {
-			int len = getTupleLength(p);
-			p = p + len;
-			continue;
-		}
-		std::vector<data> d = tuple.getData();
-		//根据属性类型选择
-		if (attr.types[index] == "int") {
-			//满足条件，则将该元组添加到table
-			if (isSatisfied(d[index].datai, where.data.datai, where.relation_character) == true) {
-				v.push_back(tuple);
-			}
-			//不满足条件，跳过该记录
-		}
-		//同case1
-		else if (attr.types[index] == "float") {
-			if (isSatisfied(d[index].dataf, where.data.dataf, where.relation_character) == true) {
-				v.push_back(tuple);
-			}
-		}
-		//同case1
-		else {
-			if (isSatisfied(d[index].datas, where.data.datas, where.relation_character) == true) {
-				v.push_back(tuple);
-			}
-		}
-		int len = getTupleLength(p);
-		p = p + len;
-	}
 }
 //判断插入的记录是否和其他记录冲突
 bool RecordManager::isConflict(std::vector<Tuple>& tuples, std::vector<data>& v, int index) {

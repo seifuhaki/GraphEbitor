@@ -108,6 +108,10 @@ bool API::createTable(std::string tableName, TableInfo attribute, std::string pr
 			catalog.createIndex(tableName, primary, primary);
 			this->im->createIndex(file_path, attribute.types[i]);
 		}
+		/*if (attribute.unique[i] = true) {
+			catalog.createIndex(tableName, attribute.attributeNames[i], primary);
+			this->im->createIndex(file_path, attribute.types[i]);
+		}*/
 	}
 	return true;
 }
