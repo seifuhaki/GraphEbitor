@@ -50,10 +50,10 @@ Table API::selectRecord(std::string table_name, std::vector<std::string> target_
 		else if (relations[i] == ">")where[i].relation_character = GREATER;
 		else if (relations[i] == "<=")where[i].relation_character = LESS_OR_EQUAL;
 		else if (relations[i] == ">=")where[i].relation_character = GREATER_OR_EQUAL;
-		std::string type = catalog.getType(table_name, target_attr[0]);
-		if (type == "int") { where[i].data.type = "int"; where[i].data.datai = std::stol(values[i]); }
+		std::string type = catalog.getType(table_name, target_attr[i]);
+		if (type == "int") { where[i].data.type = "int"; where[i].data.datai = std::stoi(values[i]);}
 		else if (type == "float") { where[i].data.type = "float"; where[i].data.dataf = std::stof(values[i]); }
-		else { where[0].data.type = type; where[i].data.datas = values[i]; }
+		else { where[i].data.type = type; where[i].data.datas = values[i]; }
 		Table table_ = record.selectRecord(table_name, target_attr[i], where[i],im);
 		table = joinTable(table, table_, target_attr[0], where[0]);
 	}
@@ -79,7 +79,7 @@ int API::deleteRecord(std::string table_name, std::string target_attr, std::stri
 	else if (type == "float") { where.data.type = "float"; where.data.dataf = std::stof(value); }
 	else { where.data.type = type; where.data.datas = value; }
 	int result;
-	result = record.deleteRecord(table_name, target_attr, where);
+	result = record.deleteRecord(table_name, target_attr, where,im);
 	return result;
 }
 //need type
