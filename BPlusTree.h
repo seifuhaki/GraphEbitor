@@ -468,6 +468,8 @@ void BPlusTree<T>::removeChara(std::string &str, char c) {
 template <typename T>
 void BPlusTree<T>::writtenbackToDiskAll() {
 	std::string info = "";
+	int blockNum = getBlockNum(this->fileName);
+	int cnt = 0;
 	if (NULL != this->roots) {
 		btree_node<T> *root = this->roots;
 		btree_node<T> *leftmost = root;
@@ -476,24 +478,33 @@ void BPlusTree<T>::writtenbackToDiskAll() {
 		}
 
 		btree_node<T> *iter = leftmost;
-		int cnt = 0;
+
 		do {
 			info.clear();
 			char * buf = bm.getPage(this->fileName, cnt);
+			int pageId = bm.getPageId(this->fileName, cnt);
 			for (int i = 0; i < iter->num; i++) {
 				std::ostringstream os;
 				os.clear();
 				os << iter->k[i].key;
-				std::string t = addStr(os.str(), this->keySize-8);
+				std::string t = addStr(os.str(), this->keySize - 8);
 				info += t;
 				info += addStr(std::to_string(iter->k[i].blockNum), 4);
 				info += addStr(std::to_string(iter->k[i].offset), 4);
 				//std::cout << info << std::endl;
 			}
 			strncpy_s(buf, PAGESIZE, info.c_str(), strlen(info.c_str()));
+			bm.modifyPage(pageId);
 			cnt++;
 			iter = iter->next;
 		} while (iter != leftmost);
+	}
+	for (int i = cnt; i <= blockNum; i++) {
+		char * buf = bm.getPage(this->fileName, i);
+		for (int j = 0; j < PAGESIZE; j++) {
+			buf[j] = 0;
+		}
+		bm.modifyPage(i);
 	}
 }
 
