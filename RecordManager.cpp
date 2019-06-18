@@ -349,7 +349,8 @@ void RecordManager::createIndex(IndexManager* index_manager, std::string tableNa
 					key = std::to_string(v[index].dataf);
 				}
 				else { key = v[index].datas; }
-				index_manager->insertIndex(file_path, v[index].type, key, i, index);//为块中的记录插入索引
+				//index_manager->insertIndex(file_path, v[index].type, key, i, index);//为块中的记录插入索引
+				index_manager->insertIndex(file_path, attr.types[index], key, i, index);
 			}
 			int len = getTupleLength(p);
 			p = p + len;
