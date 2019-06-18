@@ -264,7 +264,7 @@ std::vector<Location> IndexManager::searchRange(const std::vector<std::string> f
 			}
 			else {
 				float x = atof(keys[i].c_str());
-				itFloat->second->btree_searchRange(itFloat->second->roots, x, relations[i]);
+				newResults = itFloat->second->btree_searchRange(itFloat->second->roots, x, relations[i]);
 			}
 		}
 		else {
@@ -273,7 +273,7 @@ std::vector<Location> IndexManager::searchRange(const std::vector<std::string> f
 				throw indexNotExist();
 			}
 			else {
-				itString->second->btree_searchRange(itString->second->roots, keys[i], relations[i]);
+				newResults = itString->second->btree_searchRange(itString->second->roots, keys[i], relations[i]);
 			}
 		}
 		if (i == 0) {
