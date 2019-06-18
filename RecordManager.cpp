@@ -1,577 +1,681 @@
-#include "CatalogManager.h"
+#include "RecordManager.h"
 
-CatalogManager::CatalogManager() {
-
+void RecordManager::createTableFile(std::string tableName) {
+	tableName = tableName + ".txt";
+	FILE* f = fopen(tableName.c_str(), "w");
+	fclose(f);
 }
 
-void CatalogManager::createTable(const std::string tableName, const std::vector<std::string>& attributeNames, const std::vector<std::string>& types, const std::vector<bool>& unique, const std::string primaryKey) {
-	if (hasTable(tableName)) {
-		throw tableExists();
+void RecordManager::dropTableFile(std::string tableName) {
+	tableName = tableName + ".txt";
+	remove(tableName.c_str());
+}
+
+void RecordManager::insertRecord(std::string tableName, Tuple& tuple, IndexManager* im, CatalogManager& cm)
+{
+	std::string tmpName = tableName;
+	tableName = tableName + ".txt";
+	//检测表是否存在
+	if (!cm.hasTable(tmpName)) {
+		throw tableNotExists();
 	}
-	std::string info = "";
-	info += addStr(tableName, 32);
-	info += num2str(attributeNames.size(), 2);
-	for (std::size_t i = 0; i < 16; i++) {
-		if (i < attributeNames.size()) {
-			info += addStr(types[i], 7);
-			info += addStr(attributeNames[i], 32);
-			if (unique[i]) {
-				info += "1";
+	TableInfo attr = cm.getTableInfo(tmpName);
+	std::vector<data> v = tuple.getData();
+	//检测插入的元组的各个属性是否合法
+	for (int i = 0; i < v.size(); i++) {
+		if (cm.getType(tmpName, attr.attributeNames[i]) != attr.types[i])
+			throw tupleTypeConflict();
+	}
+	Table table = selectRecord(tmpName, cm);
+	//检测是否存在unique冲突
+	for (int i = 0; i < attr.unique.size(); i++) {
+		if (attr.unique[i] == true) {
+			if (cm.attributeHasIndex(tmpName, attr.attributeNames[i]) == true) {
+				try {
+					std::string key;
+					if (attr.types[i] == "int")key = std::to_string(v[i].datai);
+					else if (attr.types[i] == "float")key = std::to_string(v[i].dataf);
+					else key = v[i].datas;
+					std::string file_path = "IndexManager\\" + tmpName + "_" + attr.attributeNames[i] + ".txt";
+					im->findIndex(file_path, attr.types[i], key);
+					//if (isConflict(tuples, v, i) == true)
+					throw uniqueConflict();
+				}
+				catch (targetNotFound& e) {
+					//if (isConflict(tuples, v, i) == true)
+						//throw uniqueConflict();
+				}
 			}
 			else {
-				info += "0";
+				std::vector<Tuple>& tuples = table.getTuple();
+				if (isConflict(tuples, v, i) == true)
+					throw uniqueConflict();
 			}
+		}
+	}
+	//异常判断完成
+	int blockNum = getBlockNum(tableName);
+	if (blockNum <= 0)blockNum = 1;
+	char* p = bm.getPage(tableName, blockNum - 1);
+	int i;
+	for (i = 0; p[i] != '\0'&&i < PAGESIZE; i++);
+	int j;
+	int len = 0;
+	//计算Tuple的长度
+	for (j = 0; j < v.size(); j++) {
+		data d = v[j];
+		if (d.type == "int") {
+			int t = getDataLength(d.datai);
+			len += t;
+		}
+		else if (d.type == "float") {
+			float t = getDataLength(d.dataf);
+			len += t;
 		}
 		else {
-			for (int j = 0; j < 40; j++) {
-				info += "#";
+			len += d.datas.length();
+		}
+	}
+	len += v.size() + 7;
+	int blockOffset;//最终记录所插入的块的编号
+	//如果剩余的空间足够插入该tuple
+	if (PAGESIZE - 200 - i >= len) {
+		blockOffset = blockNum - 1;
+		//插入该元组
+		insertRecord1(p, i, len, v);
+		//写回表文件
+		int pageId = bm.getPageId(tableName, blockNum - 1);
+		bm.modifyPage(pageId);
+	}
+	//如果剩余的空间不够
+	else {
+		blockOffset = blockNum;
+		//新增一个块
+		char* p = bm.getPage(tableName, blockNum);
+		//在新增的块中插入该元组
+		insertRecord1(p, 0, len, v);
+		//写回表文件
+		int pageId = bm.getPageId(tableName, blockNum);
+		bm.modifyPage(pageId);
+	}
+
+	for (int i = 0; i < attr.attributeNames.size(); i++) {
+		if (cm.attributeHasIndex(tmpName, attr.attributeNames[i]) == true) {
+			std::string attr_name = attr.attributeNames[i];
+			std::string file_path = "IndexManager\\" + tmpName + "_" + attr.attributeNames[i] + ".txt";
+			std::vector<data> d = tuple.getData();
+			if (attr.types[i] == "int") {
+				std::string key = std::to_string(d[i].datai);
+				im->insertIndex(file_path, attr.types[i], key, blockOffset, i);
+			}
+			else if (attr.types[i] == "float") {
+				std::string key = std::to_string(d[i].dataf);
+				im->insertIndex(file_path, attr.types[i], key, blockOffset, i);
+			}
+			else {
+				im->insertIndex(file_path, attr.types[i], d[i].datas, blockOffset, i);
 			}
 		}
 	}
-
-	// 需要在API中先判断主键存在于所有字段名中
-	for (std::size_t i = 0; i < attributeNames.size(); i++) {
-		if (attributeNames[i] == primaryKey) {
-			info += num2str(i, 2);
-		}
-	}
-
-	// 没有索引
-	info += "0";
-	// 索引初始全用"#"填充
-	for (int i = 1; i < 7 * 34; i++) {
-		info += "#";
-	}
-
-	// 空余部分也用"#"填充
-	for (std::string::size_type i = info.length(); i < 1024; i++) {
-		info += "#";
-	}
-
-	int blockNum = getBlockNum(TableInfoPath);
-	if (blockNum == 0) {
-		blockNum = 1;
-	}
-
-	for (int i = 0; i < blockNum; i++) {
-		char * buf = bm.getPage(TableInfoPath, i);
-		int pageId = bm.getPageId(TableInfoPath, i);
-		for (int j = 0; j < 3; j++) {
-			if (buf[j * 1024] == '#' || buf[j * 1024] == '\0' || buf[j * 1024] == ' ') {
-				strncpy_s(buf + 1024 * j, PAGESIZE - 1024 * j, info.c_str(), 1024);
-				bm.modifyPage(pageId);
-				bm.flushPage(pageId, TableInfoPath, i);
-				return;
-			}
-		}
-	}
-	char* buf = bm.getPage(TableInfoPath, blockNum);
-	int pageId = bm.getPageId(TableInfoPath, blockNum);
-	strncpy_s(buf, 4096, info.c_str(), 1024);
-	bm.modifyPage(pageId);
-	bm.flushPage(pageId, TableInfoPath, blockNum);
 }
 
-bool CatalogManager::hasTable(const std::string tableName) {
-	int blockNum = getBlockNum(TableInfoPath);
-	if (blockNum == 0) {
-		return false;
+int RecordManager::deleteRecord(std::string tableName, IndexManager* im, CatalogManager& cm)
+{
+	std::string tmpName = tableName;
+	tableName = tableName + ".txt";
+	//检测表是否存在
+	if (!cm.hasTable(tmpName)) {
+		throw tableNotExists();
 	}
-	std::string temp = addStr(tableName, 32);
+
+	int blockNum = getBlockNum(tableName);
+	//表文件大小为0时直接返回
+	if (blockNum <= 0)
+		return 0;
+	TableInfo attr = cm.getTableInfo(tmpName);
+	int count = 0;
+	//遍历所有块
 	for (int i = 0; i < blockNum; i++) {
-		char * buf = bm.getPage(TableInfoPath, i);
-		std::string check(buf);
-		for (std::size_t j = 0; j < 3; j++) {
-			if (check.size() < 1024 * (j + 1)) {
-				continue;
+		char *p = bm.getPage(tableName, i);
+		char *t = p;
+		while (*p != '\0' && p < t + PAGESIZE) {
+			Tuple tuple = readTuple(p, attr);
+			std::vector<data> d = tuple.getData();
+			if (tuple.isDeleted() == false) {
+				for (int j = 0; j < attr.attributeNames.size(); j++) {
+					if (cm.attributeHasIndex(tmpName, attr.attributeNames[j]) == true) {
+						std::string attr_name = attr.attributeNames[j];
+						std::string file_path = "IndexManager\\" + tmpName + "_" + attr.attributeNames[j] + ".txt";
+						if (attr.types[j] == "int") {
+							std::string key = std::to_string(d[j].datai);
+							im->deleteIndexByKey(file_path, attr.types[j], key);
+						}
+						else if (attr.types[j] == "float") {
+							std::string key = std::to_string(d[j].dataf);
+							im->deleteIndexByKey(file_path, attr.types[j], key);
+						}
+						else {
+							im->deleteIndexByKey(file_path, attr.types[j], d[j].datas);
+						}
+					}
+				}
+				//删除记录
+				tuple.setDeleted();
+				p = deleteRecord1(p);
+				count++;
 			}
-			if (temp == check.substr(1024 * j, 32)) {
-				return true;
+			else {
+				int len = getTupleLength(p);
+				p = p + len;
 			}
 		}
+		int pageId = bm.getPageId(tableName, i);
+		bm.modifyPage(pageId);
 	}
-	return false;
+	return count;
 }
 
-int CatalogManager::getBlockNum(const std::string fileName) {
+int RecordManager::deleteRecord(std::string tableName, std::string target_attr, Where where, IndexManager*im, CatalogManager& cm)
+{
+	std::string tmpName = tableName;
+	tableName = tableName + ".txt";
+	if (!cm.hasTable(tmpName)) {
+		throw tableNotExists();
+	}
+	TableInfo attr = cm.getTableInfo(tmpName);
+	int index = -1;
+	bool flag = false;//判断是否存在索引
+	for (int i = 0; i < attr.attributeNames.size(); i++) {
+		if (attr.attributeNames[i] == target_attr) {
+			index = i;
+			if (cm.attributeHasIndex(tmpName, target_attr) == true)
+				flag = true;
+			break;
+		}
+	}
+	if (index == -1) {
+		throw attributeNotExists();
+	}
+	else if (attr.types[index] != where.data.type) {
+		throw dataTypeConflict();
+	}
+	int count = 0;
+	if (flag == true && where.relation_character != NOT_EQUAL) {
+		//有索引，通过索引获得块号
+		std::vector<int> block_ids = searchWithIndex(tmpName, target_attr, where, im);
+		for (int i = 0; i < block_ids.size(); i++) {
+			count += conditionDeleteInBlock(tmpName, block_ids[i], attr, index, where, im, cm);
+		}
+	}
+	else {
+		int blockNum = getBlockNum(tableName);
+		if (blockNum <= 0)return 0;
+		for (int i = 0; i < blockNum; i++) {
+			count += conditionDeleteInBlock(tmpName, i, attr, index, where, im, cm);
+		}
+	}
+	return count;
+}
+
+Table RecordManager::selectRecord(std::string tableName, CatalogManager& cm, std::string resultTableName)
+{
+	std::string tmpName = tableName;
+	tableName = tableName + ".txt";
+	if (!cm.hasTable(tmpName)) {
+		throw tableNotExists();
+	}
+
+	int blockNum = getBlockNum(tableName);
+	if (blockNum <= 0)blockNum = 1;
+	TableInfo attr = cm.getTableInfo(tmpName);
+	Table table(resultTableName, attr);
+	std::vector<Tuple> &v = table.getTuple();
+	//遍历所有块
+	for (int i = 0; i < blockNum; i++) {
+		char *p = bm.getPage(tableName, i);
+		char *t = p;
+		//遍历块中所有记录
+		while (*p != '\0' && p < t + PAGESIZE) {
+			//读取记录
+			Tuple tuple = readTuple(p, attr);
+			//如果记录没有被删除，将其添加到table中
+			if (tuple.isDeleted() == false)
+				v.push_back(tuple);
+			int len = getTupleLength(p);
+			p = p + len;
+		}
+	}
+	return table;
+}
+
+Table RecordManager::selectRecord(std::string tableName, std::string target_attr, Where where, IndexManager* im, CatalogManager& cm, std::string result_table_name) {
+	std::string tmpName = tableName;
+	tableName = tableName + ".txt";
+	//检测表是否存在
+	if (!cm.hasTable(tmpName)) {
+		throw tableNotExists();
+	}
+	TableInfo attr = cm.getTableInfo(tmpName);
+	int index = -1;
+	bool flag = false;
+	//获取目标属性的编号
+	for (int i = 0; i < attr.attributeNames.size(); i++) {
+		if (attr.attributeNames[i] == target_attr) {
+			index = i;
+			if (cm.attributeHasIndex(tmpName, target_attr) == true)
+				flag = true;
+			break;
+		}
+	}
+	//目标属性不存在，抛出异常
+	if (index == -1) {
+		throw attributeNotExists();
+	}
+	//where条件中的两个数据的类型不匹配，抛出异常
+	else if (attr.types[index] != where.data.type) {
+		throw dataTypeConflict();
+	}
+
+	//异常检测完成
+
+	//构建table
+	Table table(result_table_name, attr);
+	std::vector<Tuple>& v = table.getTuple();
+	if (flag == true && where.relation_character != NOT_EQUAL) {
+		std::vector<int> block_ids = searchWithIndex(tmpName, target_attr, where, im);
+		for (int i = 0; i < block_ids.size(); i++) {
+			conditionSelectInBlock(tmpName, block_ids[i], attr, index, where, v);
+		}
+	}
+	else {
+		//获取文件所占的块的数量
+		int block_num = getBlockNum(tableName);
+		//处理文件大小为0的特殊情况
+		if (block_num <= 0)
+			block_num = 1;
+		//遍历所有块
+		for (int i = 0; i < block_num; i++) {
+			conditionSelectInBlock(tmpName, i, attr, index, where, v);
+		}
+	}
+	return table;
+}
+
+void RecordManager::createIndex(IndexManager* index_manager, std::string tableName, std::string target_attr, CatalogManager& cm) {
+	std::string tmpName = tableName;
+	tableName = tableName + ".txt";
+	//检测表是否存在
+	if (!cm.hasTable(tmpName)) {
+		throw tableNotExists();
+	}
+	TableInfo attr = cm.getTableInfo(tmpName);
+	int index = -1;
+	//获取目标属性的编号
+	for (int i = 0; i < attr.attributeNames.size(); i++) {
+		if (attr.attributeNames[i] == target_attr) {
+			index = i;
+			break;
+		}
+	}
+	//目标属性不存在，抛出异常
+	if (index == -1) {
+		throw attributeNotExists();
+	}
+	//异常检测完成
+
+	//获取文件所占的块的数量
+	int block_num = getBlockNum(tableName);
+	//处理文件大小为0的特殊情况
+	if (block_num <= 0)
+		block_num = 1;
+	//获取表的属性
+	std::string file_path = "IndexManager\\" + tmpName + "_" + target_attr + ".txt";
+	//遍历所有块
+	for (int i = 0; i < block_num; i++) {
+		//获取当前块的句柄
+		char* p = bm.getPage(tableName, i);
+		char* t = p;
+		std::string key;
+		//遍历块中所有记录
+		while (*p != '\0' && p < t + PAGESIZE) {
+			//读取记录
+			Tuple tuple = readTuple(p, attr);
+			if (tuple.isDeleted() == false) {
+				std::vector<data> v = tuple.getData();
+				if (attr.types[index] == "int") {
+					key = std::to_string(v[index].datai);
+				}
+				else if (attr.types[index] == "float") {
+					key = std::to_string(v[index].dataf);
+				}
+				else { key = v[index].datas; }
+				index_manager->insertIndex(file_path, v[index].type, key, i, index);//为块中的记录插入索引
+			}
+			int len = getTupleLength(p);
+			p = p + len;
+		}
+	}
+}
+//获取文件大小
+int RecordManager::getBlockNum(std::string table_name) {
 	char* p;
 	int block_num = -1;
 	do {
-		p = bm.getPage(fileName, block_num + 1);
+		p = bm.getPage(table_name, block_num + 1);
 		block_num++;
 	} while (p[0] != '\0');
 	return block_num;
 }
-
-std::string CatalogManager::addStr(const std::string &str, std::size_t length) {
-	if (str.length() > length) {
-		throw nameTooLong();
-	}
-	std::string temp = "";
-	temp += str;
-	for (std::size_t i = temp.length(); i < length; i++) {
-		temp += '#';
-	}
-
-	return temp;
-}
-
-std::string CatalogManager::num2str(int num, std::size_t length) {
-	std::string str = "";
-	if (num < 0) {
-		throw negativeNum();
-	}
-	str += std::to_string(num);
-	for (std::size_t i = str.length(); i < length; i++) {
-		str += '#';
-	}
-
-	return str;
-}
-
-void CatalogManager::dropTable(const std::string tableName) {
-	if (!hasTable(tableName)) {
-		throw tableNotExists();
-	}
-
-	std::string temp = addStr(tableName, 32);
-	int blockNum = getBlockNum(TableInfoPath);
-
-	// 同时要删除indexInfo中对用索引
-	for (int i = 0; i < blockNum; i++) {
-		char * buf = bm.getPage(TableInfoPath, i);
-		std::string check(buf);
-		for (std::size_t j = 0; j < 3; j++) {
-			if (check.size() < 1024 * (j + 1)) {
-				continue;
-			}
-			if (temp == check.substr(1024 * j, 32)) {
-				buf[1024 * j] = '#';
-				std::string n = check.substr(1024 * j + 676, 1);
-				int indexNum = atoi(n.c_str());
-				for (int k = 0; k < indexNum; k++) {
-					std::string idName = check.substr(1024 * j + 677 + 34 * k, 32);
-					removeChara(idName, '#');
-					dropIndex(idName);
-				}
-				int pageId = bm.getPageId(TableInfoPath, i);
-				bm.modifyPage(pageId);
-				bm.flushPage(pageId, TableInfoPath, i);
-				return;
-			}
+//Insert的辅助函数
+void RecordManager::insertRecord1(char* p, int offset, int len, const std::vector<data>& v)
+{
+	std::stringstream stream;
+	stream << len;
+	std::string s = stream.str();
+	while (s.length() < 4)
+		s = "0" + s;
+	for (int j = 0; j < s.length(); j++, offset++)
+		p[offset] = s[j];
+	for (int j = 0; j < v.size(); j++) {
+		p[offset] = ' ';
+		offset++;
+		data d = v[j];
+		if (d.type == "int") {
+			copyString(p, offset, d.datai);
+		}
+		else if (d.type == "float") {
+			copyString(p, offset, d.dataf);
+		}
+		else {
+			copyString(p, offset, d.datas);
 		}
 	}
-
-
-
-
+	p[offset] = ' ';
+	p[offset + 1] = '0';
+	p[offset + 2] = '\n';
 }
-
-void CatalogManager::createIndex(const std::string tableName, const std::string attributeName, const std::string indexName) {
-	if (!hasTable(tableName)) {
-		throw tableNotExists();
+//Delete的辅助函数
+char* RecordManager::deleteRecord1(char* p) {
+	int len = getTupleLength(p);
+	p = p + len;
+	*(p - 2) = '1';
+	return p;
+}
+//从内存中读取一个tuple
+Tuple RecordManager::readTuple(char* p, TableInfo attr) {
+	Tuple tuple;
+	p = p + 5;
+	for (int i = 0; i < attr.attributeNames.size(); i++) {
+		data data;
+		data.type = attr.types[i];
+		char tmp[100];
+		int j;
+		for (j = 0; *p != ' '; j++, p++) {
+			tmp[j] = *p;
+		}
+		tmp[j] = '\0';
+		p++;
+		std::string s(tmp);
+		if (data.type == "int") {
+			std::stringstream stream(s);
+			stream >> data.datai;
+		}
+		else if (data.type == "float") {
+			std::stringstream stream(s);
+			stream >> data.dataf;
+		}
+		else {
+			data.datas = s;
+		}
+		tuple.addData(data);
 	}
-	if (!hasAttribute(tableName, attributeName)) {
-		throw attributeNotExists();
-	}
-	if (!isUnique(tableName, attributeName)) {
-		throw attributeNotUnique();
-	}
-	if (attributeHasIndex(tableName, attributeName)) {
-		throw duplicateIndexOnAttribute();
-	}
-	if (hasIndex(indexName)) {
-		throw duplicateIndexName();
-	}
-
-	// TableInfo更改
-	int blockNum = getBlockNum(TableInfoPath);
-	std::string temp = addStr(tableName, 32);
-	std::string tempa = addStr(attributeName, 32);
-	for (int i = 0; i < blockNum; i++) {
-		char * buf = bm.getPage(TableInfoPath, i);
-		int pageId = bm.getPageId(TableInfoPath, i);
-		std::string check(buf);
-		for (std::size_t j = 0; j < 3; j++) {
-			if (check.size() < 1024 * (j + 1)) {
-				continue;
-			}
-			if (temp == check.substr(1024 * j, 32)) {
-				std::string t = check.substr(1024 * j + 32, 2);
-				removeChara(t, '#');
-				int attributeNum = atoi(t.c_str());
-				int id;
-				for (int k = 0; k < attributeNum; k++) {
-					if (check.substr(1024 * j + 34 + k * 40 + 7, 32) == tempa) {
-						id = k;
-						break;
+	if (*p == '1')
+		tuple.setDeleted();
+	return tuple;
+}
+//获取一个tuple的长度
+int RecordManager::getTupleLength(char* p) {
+	char tmp[10];
+	int i;
+	for (i = 0; p[i] != ' '; i++)
+		tmp[i] = p[i];
+	tmp[i] = '\0';
+	std::string s(tmp);
+	int len = stoi(s);
+	return len;
+}
+//在块中进行条件删除
+int RecordManager::conditionDeleteInBlock(std::string tableName, int block_id, TableInfo attr, int index, Where where, IndexManager*im, CatalogManager& cm) {
+	//获取当前块的句柄
+	std::string tmpName = tableName;
+	tableName = tableName + ".txt";//新增
+	char* p = bm.getPage(tableName, block_id);
+	char* t = p;
+	int count = 0;
+	//遍历块中所有记录
+	while (*p != '\0' && p < t + PAGESIZE) {
+		//读取记录
+		Tuple tuple = readTuple(p, attr);
+		std::vector<data> d = tuple.getData();
+		//根据属性类型执行不同操作
+		if (attr.types[index] == "int") {
+			//如果满足where条件
+			if (isSatisfied(d[index].datai, where.data.datai, where.relation_character) == true) {
+				//将记录删除
+				if (tuple.isDeleted() == false) {
+					for (int j = 0; j < attr.attributeNames.size(); j++) {
+						if (cm.attributeHasIndex(tmpName, attr.attributeNames[j]) == true) {
+							std::string attr_name = attr.attributeNames[j];
+							std::string file_path = "IndexManager\\" + tmpName + "_" + attr.attributeNames[j] + ".txt";
+							if (attr.types[j] == "int") {
+								std::string key = std::to_string(d[j].datai);
+								im->deleteIndexByKey(file_path, attr.types[j], key);
+							}
+							else if (attr.types[j] == "float") {
+								std::string key = std::to_string(d[j].dataf);
+								im->deleteIndexByKey(file_path, attr.types[j], key);
+							}
+							else {
+								im->deleteIndexByKey(file_path, attr.types[j], d[j].datas);
+							}
+						}
 					}
-				}
-				std::string n = check.substr(1024 * j + 676, 1);
-				int indexNum = atoi(n.c_str());
-				if (indexNum == maxIndexNum) {
-					throw tooManyIndex();
+					tuple.setDeleted();
+					p = deleteRecord1(p);
+					count++;
 				}
 				else {
-					std::string str = addStr(indexName, 32);
-					std::string x = num2str(id, 2);
-					for (int l = 0; l <= indexNum; l++) {
-						if (buf[j * 1024 + 677 + 34 * l] == '#') {
-							for (std::size_t k = 0; k < str.size(); k++) {
-								buf[j * 1024 + 677 + 34 * l + k] = str.at(k);
+					int len = getTupleLength(p);
+					p = p + len;
+				}
+			}
+			//如果不满足where条件，跳过该记录
+			else {
+				int len = getTupleLength(p);
+				p = p + len;
+			}
+		}
+		else if (attr.types[index] == "float") {
+			if (isSatisfied(d[index].dataf, where.data.dataf, where.relation_character) == true) {
+				if (tuple.isDeleted() == false) {
+					for (int j = 0; j < attr.attributeNames.size(); j++) {
+						if (cm.attributeHasIndex(tmpName, attr.attributeNames[j]) == true) {
+							std::string attr_name = attr.attributeNames[j];
+							std::string file_path = "IndexManager\\" + tmpName + "_" + attr.attributeNames[j] + ".txt";
+							if (attr.types[j] == "int") {
+								std::string key = std::to_string(d[j].datai);
+								im->deleteIndexByKey(file_path, attr.types[j], key);
 							}
-							for (std::size_t k = 0; k < 2; k++) {
-								buf[j * 1024 + 677 + 34 * l + 32 + k] = x.at(k);
+							else if (attr.types[j] == "float") {
+								std::string key = std::to_string(d[j].dataf);
+								im->deleteIndexByKey(file_path, attr.types[j], key);
 							}
-							break;
+							else {
+								im->deleteIndexByKey(file_path, attr.types[j], d[j].datas);
+							}
 						}
 					}
-
-					buf[j * 1024 + 676] += 1; // 因为写的时候最大是7，所以直接加1，如果调整最大值这边也要调整
+					tuple.setDeleted();
+					p = deleteRecord1(p);
+					count++;
 				}
-				bm.modifyPage(pageId);
-				bm.flushPage(pageId, TableInfoPath, i);
-				break;
+				else {
+					int len = getTupleLength(p);
+					p = p + len;
+				}
+			}
+			else {
+				int len = getTupleLength(p);
+				p = p + len;
 			}
 		}
-	}
-
-	// indexInfo更改
-	blockNum = getBlockNum(IndexInfoPath);
-	for (int i = 0; i < blockNum; i++) {
-		char * buf = bm.getPage(IndexInfoPath, i);
-		int pageId = bm.getPageId(IndexInfoPath, i);
-		for (int j = 0; j < PAGESIZE / 96 - 1; j++) {
-			if (buf[j * 96] == '#' || buf[j * 96] == '\0' || buf[j * 96] == -1) {
-				std::string info = "";
-				info += addStr(tableName, 32);
-				info += addStr(attributeName, 32);
-				info += addStr(indexName, 32);
-				strncpy_s(buf + 96 * j, PAGESIZE - 96 * j, info.c_str(), 96);
-				bm.modifyPage(pageId);
-				bm.flushPage(pageId, IndexInfoPath, i);
-				return;
-			}
-		}
-	}
-
-	char * buf = bm.getPage(IndexInfoPath, blockNum);
-	int pageId = bm.getPageId(IndexInfoPath, blockNum);
-	std::string info = "";
-	info += addStr(tableName, 32);
-	info += addStr(attributeName, 32);
-	info += addStr(indexName, 32);
-	strncpy_s(buf, PAGESIZE, info.c_str(), 96);
-	bm.modifyPage(pageId);
-	bm.flushPage(pageId, IndexInfoPath, blockNum);
-}
-
-bool CatalogManager::hasAttribute(const std::string tableName, const std::string attributeName) {
-	int blockNum = getBlockNum(TableInfoPath);
-	std::string temp = addStr(tableName, 32);
-
-	for (int i = 0; i < blockNum; i++) {
-		char * buf = bm.getPage(TableInfoPath, i);
-		std::string check(buf);
-		for (std::size_t j = 0; j < 3; j++) {
-			if (check.size() < 1024 * (j + 1)) {
-				continue;
-			}
-			if (temp == check.substr(1024 * j, 32)) {
-				std::string n = check.substr(1024 * j + 32, 2);
-				removeChara(n, '#');
-				int attributeNum = atoi(n.c_str());
-				std::string t = addStr(attributeName, 32);
-				for (int k = 0; k < attributeNum; k++) {
-					if (check.substr(1024 * j + 34 + k * 40 + 7, 32) == t) {
-						return true;
+		else {
+			if (isSatisfied(d[index].datas, where.data.datas, where.relation_character) == true) {
+				if (tuple.isDeleted() == false) {
+					for (int j = 0; j < attr.attributeNames.size(); j++) {
+						if (cm.attributeHasIndex(tmpName, attr.attributeNames[j]) == true) {
+							std::string attr_name = attr.attributeNames[j];
+							std::string file_path = "IndexManager\\" + tmpName + "_" + attr.attributeNames[j] + ".txt";
+							if (attr.types[j] == "int") {
+								std::string key = std::to_string(d[j].datai);
+								im->deleteIndexByKey(file_path, attr.types[j], key);
+							}
+							else if (attr.types[j] == "float") {
+								std::string key = std::to_string(d[j].dataf);
+								im->deleteIndexByKey(file_path, attr.types[j], key);
+							}
+							else {
+								im->deleteIndexByKey(file_path, attr.types[j], d[j].datas);
+							}
+						}
 					}
+					tuple.setDeleted();
+					p = deleteRecord1(p);
+					count++;
+				}
+				else {
+					int len = getTupleLength(p);
+					p = p + len;
 				}
 			}
-		}
-	}
-	return false;
-}
-
-void CatalogManager::removeChara(std::string &str, char c) {
-	for (std::size_t i = str.size() - 1; i >= 0 && i < str.size(); i--) {
-		if (str.at(i) == c) {
-			str.erase(str.begin() + i);
-		}
-	}
-}
-
-bool CatalogManager::attributeHasIndex(const std::string tableName, const std::string attributeName) {
-	int blockNum = getBlockNum(IndexInfoPath);
-	std::string temp = addStr(tableName, 32);
-
-	for (int i = 0; i < blockNum; i++) {
-		char * buf = bm.getPage(IndexInfoPath, i);
-		std::string check(buf);
-		for (std::size_t j = 0; j < PAGESIZE / 96 - 1; j++) {
-			if (check.size() < 96 * (j + 1)) {
-				continue;
-			}
-			if (temp == check.substr(96 * j, 32)) {
-				std::string n = check.substr(96 * j + 32, 32);
-				std::string t = addStr(attributeName, 32);
-				if (n == t) {
-					return true;
-				}
+			else {
+				int len = getTupleLength(p);
+				p = p + len;
 			}
 		}
 	}
-
-	return false;
+	//将当前块写回文件
+	int page_id = bm.getPageId(tableName, block_id);
+	bm.modifyPage(page_id);
+	return count;
 }
-
-bool CatalogManager::hasIndex(const std::string indexName) {
-	int blockNum = getBlockNum(IndexInfoPath);
-	std::string temp = addStr(indexName, 32);
-	for (int i = 0; i < blockNum; i++) {
-		char * buf = bm.getPage(IndexInfoPath, i);
-		std::string check(buf);
-		for (int j = 0; j < PAGESIZE / 96 - 1; j++) {
-			if (check.size() < 96 * (j + 1)) {
-				continue;
+//在块中进行条件查询
+void RecordManager::conditionSelectInBlock(std::string table_name, int block_id, TableInfo attr, int index, Where where, std::vector<Tuple>& v) {
+	//获取当前块的句柄
+	table_name = table_name + ".txt";//新增
+	char* p = bm.getPage(table_name, block_id);
+	char* t = p;
+	//遍历所有记录
+	while (*p != '\0' && p < t + PAGESIZE) {
+		//读取记录
+		Tuple tuple = readTuple(p, attr);
+		//如果记录已被删除，跳过该记录
+		if (tuple.isDeleted() == true) {
+			int len = getTupleLength(p);
+			p = p + len;
+			continue;
+		}
+		std::vector<data> d = tuple.getData();
+		//根据属性类型选择
+		if (attr.types[index] == "int") {
+			//满足条件，则将该元组添加到table
+			if (isSatisfied(d[index].datai, where.data.datai, where.relation_character) == true) {
+				v.push_back(tuple);
 			}
-			if (temp == check.substr(96 * j + 64, 32)) {
+			//不满足条件，跳过该记录
+		}
+		//同case1
+		else if (attr.types[index] == "float") {
+			if (isSatisfied(d[index].dataf, where.data.dataf, where.relation_character) == true) {
+				v.push_back(tuple);
+			}
+		}
+		//同case1
+		else {
+			if (isSatisfied(d[index].datas, where.data.datas, where.relation_character) == true) {
+				v.push_back(tuple);
+			}
+		}
+		int len = getTupleLength(p);
+		p = p + len;
+	}
+}
+//带索引查找
+std::vector<int> RecordManager::searchWithIndex(std::string tableName, std::string attributeName, Where where, IndexManager*im) {
+	std::string file_path = "IndexManager\\" + tableName + "_" + attributeName + ".txt";
+	std::vector<std::string> relations;
+	switch (where.relation_character) {
+	case LESS: {
+		relations.push_back("<");
+		break;
+	}
+	case LESS_OR_EQUAL: {
+		relations.push_back("<=");
+		break;
+	}
+	case EQUAL: {
+		relations.push_back("=");
+		break;
+	}
+	case GREATER: {
+		relations.push_back(">");
+		break;
+	}
+	case GREATER_OR_EQUAL: {
+		relations.push_back(">=");
+		break;
+	}
+	case NOT_EQUAL: {
+		relations.push_back("<>");
+		break;
+	}
+	}
+	std::vector<std::string> searchTables;
+	searchTables.push_back(file_path);
+	std::vector<std::string> searchTypes;
+	searchTypes.push_back(where.data.type);
+	std::vector<std::string> searchKeys;
+	if (where.data.type == "int")
+		searchKeys.push_back(std::to_string(where.data.datai));
+	else if (where.data.type == "float")
+		searchKeys.push_back(std::to_string(where.data.dataf));
+	else searchKeys.push_back(where.data.datas);
+	std::vector<int> block_ids;
+	std::vector<Location> Ls = im->searchRange(searchTables, relations, searchTypes, searchKeys);
+	for (std::size_t i = 0; i < Ls.size(); i++) {
+		std::vector<int>::iterator result = std::find(block_ids.begin(), block_ids.end(), Ls[i].blockNum);
+		if (result == block_ids.end())block_ids.push_back(Ls[i].blockNum);
+	}
+	return block_ids;
+}
+//判断插入的记录是否和其他记录冲突
+bool RecordManager::isConflict(std::vector<Tuple>& tuples, std::vector<data>& v, int index) {
+	for (int i = 0; i < tuples.size(); i++) {
+		if (tuples[i].isDeleted() == true)
+			continue;
+		std::vector<data> d = tuples[i].getData();
+		if (v[index].type == "int") {
+			if (v[index].datai == d[index].datai)
 				return true;
-			}
+		}
+		else if (v[index].type == "float") {
+			if (v[index].dataf == d[index].dataf)
+				return true;
+		}
+		else {
+			if (v[index].datas == d[index].datas)
+				return true;
 		}
 	}
 	return false;
-
-}
-
-void CatalogManager::dropIndex(const std::string indexName) {
-	if (!hasIndex(indexName)) {
-		throw indexNotExist();
-	}
-	std::string tableName;
-	int blockNum = getBlockNum(IndexInfoPath);
-	std::string temp = addStr(indexName, 32);
-	// indexInfo
-	for (int i = 0; i < blockNum; i++) {
-		char * buf = bm.getPage(IndexInfoPath, i);
-		int pageId = bm.getPageId(IndexInfoPath, i);
-		std::string check(buf);
-		for (int j = 0; j < PAGESIZE / 96 - 1; j++) {
-			if (check.size() < 96 * (j + 1)) {
-				continue;
-			}
-			if (temp == check.substr(96 * j + 64, 32)) {
-				tableName = check.substr(96 * j, 32);
-				buf[96 * j] = buf[96 * j+32] = buf[96 * j+64] = '#';
-				bm.modifyPage(pageId);
-				bm.flushPage(pageId, IndexInfoPath, i);
-				break;
-			}
-		}
-	}
-	// tableInfo
-	blockNum = getBlockNum(TableInfoPath);
-	for (int i = 0; i < blockNum; i++) {
-		char * buf = bm.getPage(TableInfoPath, i);
-		int pageId = bm.getPageId(TableInfoPath, i);
-		std::string check(buf);
-		for (std::size_t j = 0; j < 3; j++) {
-			if (check.size() < 1024 * (j + 1)) {
-				continue;
-			}
-			if (tableName == check.substr(1024 * j, 32)) {
-				std::string n = check.substr(1024 * j + 676, 1);
-				int indexNum = atoi(n.c_str());
-				for (int k = 0; k < indexNum; k++) {
-					if (temp == check.substr(1024 * j + 677 + 34 * k, 32)) {
-						std::string t = addStr("#", 34);
-						for (std::size_t l = 0; l < 34; l++) {
-							buf[j * 1024 + 677 + 34 * k + l] = t.at(l);
-						}
-						break;
-					}
-				}
-
-				buf[j * 1024 + 676] -= 1;
-				bm.modifyPage(pageId);
-				bm.flushPage(pageId, TableInfoPath, i);
-				break;
-			}
-		}
-	}
-
-
-
-}
-
-bool CatalogManager::isUnique(const std::string tableName, const std::string attributeName) {
-	int blockNum = getBlockNum(TableInfoPath);
-	std::string temp = addStr(tableName, 32);
-
-	for (int i = 0; i < blockNum; i++) {
-		char * buf = bm.getPage(TableInfoPath, i);
-		std::string check(buf);
-		for (std::size_t j = 0; j < 3; j++) {
-			if (check.size() < 1024 * (j + 1)) {
-				continue;
-			}
-			if (temp == check.substr(1024 * j, 32)) {
-				std::string n = check.substr(1024 * j + 32, 2);
-				removeChara(n, '#');
-				int attributeNum = atoi(n.c_str());
-				std::string t = addStr(attributeName, 32);
-				for (int k = 0; k < attributeNum; k++) {
-					if (check.substr(1024 * j + 34 + k * 40 + 7, 32) == t) {
-						if (check.substr(1024 * j + 34 + k * 40 + 39, 1) == "1") {
-							return true;
-						}
-						else {
-							return false;
-						}
-					}
-				}
-			}
-		}
-	}
-	return false;
-}
-
-std::vector<IndexInfo> CatalogManager::getIndexInfo() {
-
-	std::vector<IndexInfo> results;
-	results.clear();
-	int blockNum = getBlockNum(IndexInfoPath);
-	for (int i = 0; i < blockNum; i++) {
-		char * buf = bm.getPage(IndexInfoPath, i);
-		std::string check(buf);
-		for (int j = 0; j < PAGESIZE / 96 - 1; j++) {
-			if (check.size() < 96 * (j + 1)) {
-				continue;
-			}
-			if (check.substr(96 * j, 1) != "#" && check.substr(96 * j, 1) != "\0" && check.substr(96 * j, 1) != " ") {
-				IndexInfo newIndex;
-				std::string tn = check.substr(96 * j, 32);
-				std::string an = check.substr(96 * j + 32, 32);
-				std::string in = check.substr(96 * j + 64, 32);
-
-				removeChara(tn, '#');
-				removeChara(an, '#');
-				removeChara(in, '#');
-
-				newIndex.attributeName = an;;
-				newIndex.indexName = in;
-				newIndex.tableName = tn;
-				newIndex.type = getType(tn, an);
-
-				results.push_back(newIndex);
-			}
-		}
-	}
-	return results;
-}
-
-TableInfo CatalogManager::getTableInfo(const std::string tableName) {
-	if (!hasTable(tableName)) {
-		throw tableNotExists();
-	}
-
-	int blockNum = getBlockNum(TableInfoPath);
-	std::string temp = addStr(tableName, 32);
-	TableInfo result;
-	result.attributeNames.clear();
-	result.types.clear();
-	result.unique.clear();
-	result.tableName = tableName;
-	for (int i = 0; i < blockNum; i++) {
-		char * buf = bm.getPage(TableInfoPath, i);
-		std::string check(buf);
-		for (std::size_t j = 0; j < 3; j++) {
-			if (check.size() < 1024 * (j + 1)) {
-				continue;
-			}
-			if (temp == check.substr(1024 * j, 32)) {
-				std::string n = check.substr(1024 * j + 32, 2);
-				removeChara(n, '#');
-				int attributeNum = atoi(n.c_str());
-				for (int k = 0; k < attributeNum; k++) {
-					std::string an = check.substr(1024 * j + 34 + k * 40 + 7, 32);
-					std::string ty = check.substr(1024 * j + 34 + k * 40, 7);
-					bool uq;
-					if (check.substr(1024 * j + 34 + k * 40 + 39, 1) == "1") {
-						uq = true;
-					}
-					else {
-						uq = false;
-					}
-					removeChara(an, '#');
-					removeChara(ty, '#');
-					result.attributeNames.push_back(an);
-					result.types.push_back(ty);
-					result.unique.push_back(uq);
-				}
-			}
-		}
-	}
-	return result;
-}
-
-std::string CatalogManager::getType(const std::string tableName, const std::string attributeName) {
-
-	std::string type;
-	int blockNum = getBlockNum(TableInfoPath);
-	std::string temp = addStr(tableName, 32);
-
-	for (int i = 0; i < blockNum; i++) {
-		char * buf = bm.getPage(TableInfoPath, i);
-		std::string check(buf);
-		for (std::size_t j = 0; j < 3; j++) {
-			if (check.size() < 1024 * (j + 1)) {
-				continue;
-			}
-			if (temp == check.substr(1024 * j, 32)) {
-				std::string n = check.substr(1024 * j + 32, 2);
-				removeChara(n, '#');
-				int attributeNum = atoi(n.c_str());
-				std::string t = addStr(attributeName, 32);
-				for (int k = 0; k < attributeNum; k++) {
-					if (check.substr(1024 * j + 34 + k * 40 + 7, 32) == t) {
-						type = check.substr(1024 * j + 34 + k * 40, 7);
-						removeChara(type, '#');
-					}
-				}
-			}
-		}
-	}
-	return type;
-}
-
-IndexInfo CatalogManager::getIndexInfo(std::string indexName) {
-	if (!hasIndex(indexName)) {
-		throw indexNotExist();
-	}
-	IndexInfo result;
-	int blockNum = getBlockNum(IndexInfoPath);
-	std::string temp = addStr(indexName, 32);
-	for (int i = 0; i < blockNum; i++) {
-		char * buf = bm.getPage(IndexInfoPath, i);
-		std::string check(buf);
-		for (int j = 0; j < PAGESIZE / 96 - 1; j++) {
-			if (check.size() < 96 * (j + 1)) {
-				continue;
-			}
-			if (temp == check.substr(96 * j + 64, 32)) {
-				std::string tn = check.substr(96 * j, 32);
-				std::string an = check.substr(96 * j + 32, 32);
-				std::string in = check.substr(96 * j + 64, 32);
-				removeChara(tn, '#');
-				removeChara(an, '#');
-				removeChara(in, '#');
-				result.attributeName = an;
-				result.indexName = in;
-				result.tableName = tn;
-				result.type = getType(tn, an);
-			}
-		}
-	}
-	return result;
 }
