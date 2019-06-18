@@ -23,7 +23,7 @@ API::~API() {
 }
 Table API::selectRecord(std::string table_name)
 {
-	return record.selectRecord(table_name);
+	return record.selectRecord(table_name, this->catalog);
 }
 //need type
 Table API::selectRecord(std::string table_name, std::vector<std::string> target_attr, std::vector<std::string> relations, std::vector<std::string> values)
@@ -39,18 +39,18 @@ Table API::selectRecord(std::string table_name, std::vector<std::string> target_
 		else if (relations[i] == "<=")where[i].relation_character = LESS_OR_EQUAL;
 		else if (relations[i] == ">=")where[i].relation_character = GREATER_OR_EQUAL;
 		std::string type = catalog.getType(table_name, target_attr[i]);
-		if (type == "int") { where[i].data.type = "int"; where[i].data.datai = std::stoi(values[i]);}
+		if (type == "int") { where[i].data.type = "int"; where[i].data.datai = std::stoi(values[i]); }
 		else if (type == "float") { where[i].data.type = "float"; where[i].data.dataf = std::stof(values[i]); }
 		else { where[i].data.type = type; where[i].data.datas = values[i]; }
-		table_.push_back(record.selectRecord(table_name, target_attr[i], where[i], im));
+		table_.push_back(record.selectRecord(table_name, target_attr[i], where[i], im, this->catalog));
 	}
-		Table table = joinTable(table_name,table_, target_attr, where);
+	Table table = joinTable(table_name, table_, target_attr, where);
 	return table;
 }
 int API::deleteRecord(std::string table_name)
 {
 	int result;
-	result = record.deleteRecord(table_name,im);
+	result = record.deleteRecord(table_name, im, this->catalog);
 	return result;
 }
 int API::deleteRecord(std::string table_name, std::string target_attr, std::string relation, std::string value)
@@ -67,7 +67,7 @@ int API::deleteRecord(std::string table_name, std::string target_attr, std::stri
 	else if (type == "float") { where.data.type = "float"; where.data.dataf = std::stof(value); }
 	else { where.data.type = type; where.data.datas = value; }
 	int result;
-	result = record.deleteRecord(table_name, target_attr, where,im);
+	result = record.deleteRecord(table_name, target_attr, where, im, this->catalog);
 	return result;
 }
 //need type
@@ -83,7 +83,7 @@ void API::insertRecord(std::string table_name, std::vector<std::string>values)
 		else { data_in.type = type; data_in.datas = values[i]; }
 		tuple.addData(data_in);
 	}
-	record.insertRecord(table_name, tuple, this->im);
+	record.insertRecord(table_name, tuple, this->im, this->catalog);
 }
 bool API::createTable(std::string tableName, TableInfo attribute, std::string primary)
 {
@@ -105,7 +105,7 @@ bool API::createTable(std::string tableName, TableInfo attribute, std::string pr
 }
 bool API::dropTable(std::string table_name)
 {
-	record.deleteRecord(table_name,im);
+	record.deleteRecord(table_name, im, this->catalog);
 	record.dropTableFile(table_name);
 	catalog.dropTable(table_name);
 
@@ -125,7 +125,7 @@ bool API::createIndex(std::string tableName, std::string index_name, std::string
 		}
 	}
 	this->im->createIndex(file_path, type);
-	record.createIndex(this->im, tableName, attrName);
+	record.createIndex(this->im, tableName, attrName, this->catalog);
 	return true;
 }
 bool API::dropIndex(std::string indexName)
@@ -149,7 +149,7 @@ bool API::dropIndex(std::string indexName)
 	return true;
 }
 //私有函数，用于多条件查询时的and条件合并
-Table API::joinTable(std::string table_name,std::vector<Table> table, std::vector<std::string> target_attr, std::vector<Where> where)
+Table API::joinTable(std::string table_name, std::vector<Table> table, std::vector<std::string> target_attr, std::vector<Where> where)
 {
 	Table result_table = Table(table_name, catalog.getTableInfo(table_name));
 	std::vector<Tuple>& result_tuple = result_table.getTuple();
@@ -170,10 +170,10 @@ Table API::joinTable(std::string table_name,std::vector<Table> table, std::vecto
 		}
 		for (int j = 1; j < table.size(); j++) {
 			std::vector<Tuple> tuple = table[j].getTuple();
-			if(isConflict(tuple,tuple1[i].getData(),index) == false)continue;
+			if (isConflict(tuple, tuple1[i].getData(), index) == false)continue;
 			count++;
 		}
-		if(count == table.size()-1)result_tuple.push_back(tuple1[i]);
+		if (count == table.size() - 1)result_tuple.push_back(tuple1[i]);
 	}
 	std::sort(result_tuple.begin(), result_tuple.end(), sortcmp);
 	return result_table;
