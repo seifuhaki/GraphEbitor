@@ -362,7 +362,7 @@ void CatalogManager::dropIndex(const std::string indexName) {
 			}
 			if (temp == check.substr(96 * j + 64, 32)) {
 				tableName = check.substr(96 * j, 32);
-				buf[96 * j] = '#';
+				buf[96 * j] = buf[96 * j+32] = buf[96 * j+64] = '#';
 				bm.modifyPage(pageId);
 				bm.flushPage(pageId, IndexInfoPath, i);
 				break;
