@@ -29,20 +29,8 @@ Table API::selectRecord(std::string table_name)
 Table API::selectRecord(std::string table_name, std::vector<std::string> target_attr, std::vector<std::string> relations, std::vector<std::string> values)
 {
 	std::vector<Where> where;
-	where.push_back(Where());
-	if (relations[0] == "=")where[0].relation_character = EQUAL;
-	else if (relations[0] == "<>")where[0].relation_character = NOT_EQUAL;
-	else if (relations[0] == "<")where[0].relation_character = LESS;
-	else if (relations[0] == ">")where[0].relation_character = GREATER;
-	else if (relations[0] == "<=")where[0].relation_character = LESS_OR_EQUAL;
-	else if (relations[0] == ">=")where[0].relation_character = GREATER_OR_EQUAL;
-	std::string type = catalog.getType(table_name, target_attr[0]);
-	if (type == "int") { where[0].data.type = "int"; where[0].data.datai = std::stol(values[0]); }
-	else if (type == "float") { where[0].data.type = "float"; where[0].data.dataf = std::stof(values[0]); }
-	else { where[0].data.type = type; where[0].data.datas = values[0]; }
-	Table table;
-	table = record.selectRecord(table_name, target_attr[0], where[0],im);
-	for (int i = 1; i < values.size(); i++) {
+	std::vector<Table> table_;
+	for (int i = 0; i < values.size(); i++) {
 		where.push_back(Where());
 		if (relations[i] == "=")where[i].relation_character = EQUAL;
 		else if (relations[i] == "<>")where[i].relation_character = NOT_EQUAL;
@@ -54,9 +42,9 @@ Table API::selectRecord(std::string table_name, std::vector<std::string> target_
 		if (type == "int") { where[i].data.type = "int"; where[i].data.datai = std::stoi(values[i]);}
 		else if (type == "float") { where[i].data.type = "float"; where[i].data.dataf = std::stof(values[i]); }
 		else { where[i].data.type = type; where[i].data.datas = values[i]; }
-		Table table_ = record.selectRecord(table_name, target_attr[i], where[i],im);
-		table = joinTable(table, table_, target_attr, where,i);
+		table_.push_back(record.selectRecord(table_name, target_attr[i], where[i], im));
 	}
+		Table table = joinTable(table_name,table_, target_attr, where);
 	return table;
 }
 int API::deleteRecord(std::string table_name)
@@ -161,37 +149,31 @@ bool API::dropIndex(std::string indexName)
 	return true;
 }
 //私有函数，用于多条件查询时的and条件合并
-Table API::joinTable(Table &table1, Table &table2, std::vector<std::string> target_attr, std::vector<Where> where,int k)
+Table API::joinTable(std::string table_name,std::vector<Table> table, std::vector<std::string> target_attr, std::vector<Where> where)
 {
-	Table result_table = Table();
-
+	Table result_table = Table(table_name, catalog.getTableInfo(table_name));
 	std::vector<Tuple>& result_tuple = result_table.getTuple();
-	std::vector<Tuple> tuple1 = table1.getTuple();
-	std::vector<Tuple> tuple2 = table2.getTuple();
+	std::vector<Tuple> tuple1 = table[0].getTuple();
 
 	int i;
-	TableInfo attr = table1.getAttr();
-	for (i = 0; i < 32; i++)
-		if (attr.attributeNames[i] == target_attr[0])
-			break;
-
-	for (int j = 0; j < tuple2.size(); j++)
-		if (isSatisfied(tuple2[j], i, where[0]))
-			result_tuple.push_back(tuple2[j]);
-	attr = table2.getAttr();
-	for (i = 0; i < 32; i++)
-		if (attr.attributeNames[i] == target_attr[k])
-			break;
-
-	for (int j = 0; j < tuple1.size(); j++) {
-		if (isSatisfied(tuple1[j], i, where[k])) {
-			for (int q = 0; q < attr.unique.size(); q++) {
-				if (attr.unique[q] == true) {
-					if (isConflict(result_tuple, tuple1[j].getData(), q) == false)
-						result_tuple.push_back(tuple1[j]);
-				}
-			}	
+	TableInfo attr = table[0].getAttr();
+	int index = 0;
+	for (int i = 0; i < attr.attributeNames.size(); i++) {
+		if (attr.unique[i] == true)break;
+		index++;
+	}
+	for (int i = 0; i < tuple1.size(); i++) {
+		int count = 0;
+		if (table.size() == 1) {
+			result_tuple.push_back(tuple1[i]);
+			continue;
 		}
+		for (int j = 1; j < table.size(); j++) {
+			std::vector<Tuple> tuple = table[j].getTuple();
+			if(isConflict(tuple,tuple1[i].getData(),index) == false)continue;
+			count++;
+		}
+		if(count == table.size()-1)result_tuple.push_back(tuple1[i]);
 	}
 	std::sort(result_tuple.begin(), result_tuple.end(), sortcmp);
 	return result_table;

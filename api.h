@@ -72,8 +72,7 @@ public:
 	bool dropIndex(std::string indexName);
 private:
 	//私有函数，用于多条件查询时的and条件合并
-	Table joinTable(Table& table1, Table& table2, std::vector<std::string> target_attr, std::vector<Where> where, int i);
-
+	Table API::joinTable(std::string table_name, std::vector<Table> table, std::vector<std::string> target_attr, std::vector<Where> where);
 private:
 	RecordManager record;
 	CatalogManager catalog;

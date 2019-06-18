@@ -1,8 +1,18 @@
-﻿  CatalogManager.cpp
-  C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\CatalogManager.cpp: warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+﻿  api.cpp
+  C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\api.cpp: warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+  C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\api.h: warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
   C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\basic.h: warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
-C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\CatalogManager.cpp(335,21): warning C4018:  “<”: 有符号/无符号不匹配
-C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\CatalogManager.cpp(360,21): warning C4018:  “<”: 有符号/无符号不匹配
-C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\CatalogManager.cpp(448,21): warning C4018:  “<”: 有符号/无符号不匹配
-C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\CatalogManager.cpp(559,21): warning C4018:  “<”: 有符号/无符号不匹配
+  C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\RecordManager.h: warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\api.cpp(13,20): warning C4018:  “<”: 有符号/无符号不匹配
+C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\api.cpp(48,20): warning C4018:  “<”: 有符号/无符号不匹配
+C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\api.cpp(93,20): warning C4018:  “<”: 有符号/无符号不匹配
+C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\api.cpp(109,20): warning C4018:  “<”: 有符号/无符号不匹配
+C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\api.cpp(136,20): warning C4018:  “<”: 有符号/无符号不匹配
+C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\api.cpp(153,20): warning C4018:  “<”: 有符号/无符号不匹配
+C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\api.cpp(176,20): warning C4018:  “<”: 有符号/无符号不匹配
+C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\api.cpp(180,20): warning C4018:  “<”: 有符号/无符号不匹配
+C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\api.cpp(186,21): warning C4018:  “<”: 有符号/无符号不匹配
+C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\api.cpp(173,6): warning C4101:  “i”: 未引用的局部变量
+C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\api.cpp(214,16): warning C4018:  “<”: 有符号/无符号不匹配
+C:\Users\西風葉輝\source\repos\Myminisql\Myminisql\api.cpp(277,20): warning C4018:  “<”: 有符号/无符号不匹配
   Myminisql.vcxproj -> C:\Users\西風葉輝\source\repos\Myminisql\Debug\Myminisql.exe
