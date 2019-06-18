@@ -424,6 +424,7 @@ void BPlusTree<T>::initTree()
 				break;
 			}
 			std::string t = temp.substr(j*this->keySize, this->keySize - 8);
+			removeChara(t, '#');
 			std::stringstream stream(t);
 			stream >> newData.key;
 			t = temp.substr((j+1)*this->keySize-8, 4);
