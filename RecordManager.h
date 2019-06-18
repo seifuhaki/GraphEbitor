@@ -40,7 +40,7 @@ public:
 	//输出：int(删除的记录数)
 	//功能：删除对应表中所有记录（不删除表文件）
 	//异常：如果表不存在，抛出table_not_exist异常
-	int deleteRecord(std::string tableName);
+	int deleteRecord(std::string tableName, IndexManager* im);
 	//输入：表名，目标属性，一个Where类型的对象
 	//输出：int(删除的记录数)
 	//功能：删除对应表中所有目标属性值满足Where条件的记录

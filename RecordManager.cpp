@@ -27,7 +27,6 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple, IndexManag
 			throw tupleTypeConflict();
 	}
 	Table table = selectRecord(tmpName);
-	std::vector<Tuple>& tuples = table.getTuple();
 	//检测是否存在unique冲突
 	for (int i = 0; i < attr.unique.size(); i++) {
 		if (attr.unique[i] == true) {
@@ -48,6 +47,7 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple, IndexManag
 				}
 			}
 			else {
+				std::vector<Tuple>& tuples = table.getTuple();
 				if (isConflict(tuples, v, i) == true)
 					throw uniqueConflict();
 			}
@@ -119,7 +119,7 @@ void RecordManager::insertRecord(std::string tableName, Tuple& tuple, IndexManag
 	}
 }
 
-int RecordManager::deleteRecord(std::string tableName)
+int RecordManager::deleteRecord(std::string tableName, IndexManager* im)
 {
 	std::string tmpName = tableName;
 	tableName = tableName + ".txt";
@@ -134,17 +134,6 @@ int RecordManager::deleteRecord(std::string tableName)
 		return 0;
 	TableInfo attr = cm.getTableInfo(tmpName);
 	int count = 0;
-	//构造所有的Index
-	std::vector<std::string> table_name;
-	std::vector<std::string> attributeNames;
-	std::vector<std::string> types;
-	std::vector<IndexInfo> indexinfo = cm.getIndexInfo();
-	for (int i = 0; i < indexinfo.size(); i++) {
-		table_name.push_back(indexinfo[i].tableName);
-		attributeNames.push_back(indexinfo[i].attributeName);
-		types.push_back(indexinfo[i].type);
-	}
-	IndexManager im(table_name, attributeNames, types);
 	//遍历所有块
 	for (int i = 0; i < blockNum; i++) {
 		char *p = bm.getPage(tableName, i);
@@ -158,14 +147,14 @@ int RecordManager::deleteRecord(std::string tableName)
 					std::vector<data> d = tuple.getData();
 					if (attr.types[j] == "int") {
 						std::string key = std::to_string(d[j].datai);
-						im.deleteIndexByKey(file_path, attr.types[j], key);
+						im->deleteIndexByKey(file_path, attr.types[j], key);
 					}
 					else if (attr.types[j] == "float") {
 						std::string key = std::to_string(d[j].dataf);
-						im.deleteIndexByKey(file_path, attr.types[j], key);
+						im->deleteIndexByKey(file_path, attr.types[j], key);
 					}
 					else {
-						im.deleteIndexByKey(file_path, attr.types[j], d[j].datas);
+						im->deleteIndexByKey(file_path, attr.types[j], d[j].datas);
 					}
 				}
 			}

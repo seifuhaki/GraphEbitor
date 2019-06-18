@@ -62,7 +62,7 @@ Table API::selectRecord(std::string table_name, std::vector<std::string> target_
 int API::deleteRecord(std::string table_name)
 {
 	int result;
-	result = record.deleteRecord(table_name);
+	result = record.deleteRecord(table_name,im);
 	return result;
 }
 int API::deleteRecord(std::string table_name, std::string target_attr, std::string relation, std::string value)
@@ -246,29 +246,29 @@ bool isSatisfied(Tuple& tuple, int target_attr, Where where)
 		else return (data[target_attr].datas < where.data.datas);
 	} break;
 	case LESS_OR_EQUAL: {
-		if (where.data.type == "int") return (data[target_attr].datai < where.data.datai);
-		else if (where.data.type == "float") return (data[target_attr].dataf < where.data.dataf);
-		else return (data[target_attr].datas < where.data.datas);
+		if (where.data.type == "int") return (data[target_attr].datai <= where.data.datai);
+		else if (where.data.type == "float") return (data[target_attr].dataf <= where.data.dataf);
+		else return (data[target_attr].datas <= where.data.datas);
 	} break;
 	case EQUAL: {
-		if (where.data.type == "int") return (data[target_attr].datai < where.data.datai);
-		else if (where.data.type == "float") return (data[target_attr].dataf < where.data.dataf);
-		else return (data[target_attr].datas < where.data.datas);
+		if (where.data.type == "int") return (data[target_attr].datai == where.data.datai);
+		else if (where.data.type == "float") return (data[target_attr].dataf == where.data.dataf);
+		else return (data[target_attr].datas == where.data.datas);
 	} break;
 	case GREATER_OR_EQUAL: {
-		if (where.data.type == "int") return (data[target_attr].datai < where.data.datai);
-		else if (where.data.type == "float") return (data[target_attr].dataf < where.data.dataf);
-		else return (data[target_attr].datas < where.data.datas);
+		if (where.data.type == "int") return (data[target_attr].datai >= where.data.datai);
+		else if (where.data.type == "float") return (data[target_attr].dataf >= where.data.dataf);
+		else return (data[target_attr].datas >= where.data.datas);
 	} break;
 	case GREATER: {
-		if (where.data.type == "int") return (data[target_attr].datai < where.data.datai);
-		else if (where.data.type == "float") return (data[target_attr].dataf < where.data.dataf);
-		else return (data[target_attr].datas < where.data.datas);
+		if (where.data.type == "int") return (data[target_attr].datai > where.data.datai);
+		else if (where.data.type == "float") return (data[target_attr].dataf > where.data.dataf);
+		else return (data[target_attr].datas > where.data.datas);
 	} break;
 	case NOT_EQUAL: {
-		if (where.data.type == "int") return (data[target_attr].datai < where.data.datai);
-		else if (where.data.type == "float") return (data[target_attr].dataf < where.data.dataf);
-		else return (data[target_attr].datas < where.data.datas);
+		if (where.data.type == "int") return (data[target_attr].datai != where.data.datai);
+		else if (where.data.type == "float") return (data[target_attr].dataf != where.data.dataf);
+		else return (data[target_attr].datas != where.data.datas);
 	} break;
 	default:break;
 	}
