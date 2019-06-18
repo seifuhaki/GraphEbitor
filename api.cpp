@@ -117,6 +117,7 @@ bool API::createTable(std::string tableName, TableInfo attribute, std::string pr
 }
 bool API::dropTable(std::string table_name)
 {
+	record.deleteRecord(table_name,im);
 	record.dropTableFile(table_name);
 	catalog.dropTable(table_name);
 

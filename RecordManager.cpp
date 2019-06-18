@@ -138,29 +138,36 @@ int RecordManager::deleteRecord(std::string tableName, IndexManager* im)
 	for (int i = 0; i < blockNum; i++) {
 		char *p = bm.getPage(tableName, i);
 		char *t = p;
-		while (*p != '\0'&&p < t + PAGESIZE) {
+		while (*p != '\0' && p < t + PAGESIZE) {
 			Tuple tuple = readTuple(p, attr);
-			for (int j = 0; j < attr.attributeNames.size(); j++) {
-				if (cm.attributeHasIndex(tmpName, attr.attributeNames[j]) == true) {
-					std::string attr_name = attr.attributeNames[j];
-					std::string file_path = "IndexManager\\" + tmpName + "_" + attr.attributeNames[j] + ".txt";
-					std::vector<data> d = tuple.getData();
-					if (attr.types[j] == "int") {
-						std::string key = std::to_string(d[j].datai);
-						im->deleteIndexByKey(file_path, attr.types[j], key);
-					}
-					else if (attr.types[j] == "float") {
-						std::string key = std::to_string(d[j].dataf);
-						im->deleteIndexByKey(file_path, attr.types[j], key);
-					}
-					else {
-						im->deleteIndexByKey(file_path, attr.types[j], d[j].datas);
+			std::vector<data> d = tuple.getData();
+			if (tuple.isDeleted() == false) {
+				for (int j = 0; j < attr.attributeNames.size(); j++) {
+					if (cm.attributeHasIndex(tmpName, attr.attributeNames[j]) == true) {
+						std::string attr_name = attr.attributeNames[j];
+						std::string file_path = "IndexManager\\" + tmpName + "_" + attr.attributeNames[j] + ".txt";
+						if (attr.types[j] == "int") {
+							std::string key = std::to_string(d[j].datai);
+							im->deleteIndexByKey(file_path, attr.types[j], key);
+						}
+						else if (attr.types[j] == "float") {
+							std::string key = std::to_string(d[j].dataf);
+							im->deleteIndexByKey(file_path, attr.types[j], key);
+						}
+						else {
+							im->deleteIndexByKey(file_path, attr.types[j], d[j].datas);
+						}
 					}
 				}
+				//删除记录
+				tuple.setDeleted();
+				p = deleteRecord1(p);
+				count++;
 			}
-			//删除记录
-			p = deleteRecord1(p);
-			count++;
+			else {
+				int len = getTupleLength(p);
+				p = p + len;
+			}
 		}
 		int pageId = bm.getPageId(tableName, i);
 		bm.modifyPage(pageId);
@@ -445,7 +452,6 @@ int RecordManager::conditionDeleteInBlock(std::string tableName, int block_id, T
 	char* p = bm.getPage(tableName, block_id);
 	char* t = p;
 	int count = 0;
-	std::string file_path = "IndexManager\\" + tmpName + "_" + attr.attributeNames[index] + ".txt";
 	//遍历块中所有记录
 	while (*p != '\0' && p < t + PAGESIZE) {
 		//读取记录
@@ -456,9 +462,32 @@ int RecordManager::conditionDeleteInBlock(std::string tableName, int block_id, T
 			//如果满足where条件
 			if (isSatisfied(d[index].datai, where.data.datai, where.relation_character) == true) {
 				//将记录删除
-				im->deleteIndexByKey(file_path, attr.types[index], std::to_string(d[index].datai));
-				p = deleteRecord1(p);
-				count++;
+				if (tuple.isDeleted() == false) {
+					for (int j = 0; j < attr.attributeNames.size(); j++) {
+						if (cm.attributeHasIndex(tmpName, attr.attributeNames[j]) == true) {
+							std::string attr_name = attr.attributeNames[j];
+							std::string file_path = "IndexManager\\" + tmpName + "_" + attr.attributeNames[j] + ".txt";
+							if (attr.types[j] == "int") {
+								std::string key = std::to_string(d[j].datai);
+								im->deleteIndexByKey(file_path, attr.types[j], key);
+							}
+							else if (attr.types[j] == "float") {
+								std::string key = std::to_string(d[j].dataf);
+								im->deleteIndexByKey(file_path, attr.types[j], key);
+							}
+							else {
+								im->deleteIndexByKey(file_path, attr.types[j], d[j].datas);
+							}
+						}
+					}
+					tuple.setDeleted();
+					p = deleteRecord1(p);
+					count++;
+				}
+				else {
+					int len = getTupleLength(p);
+					p = p + len;
+				}
 			}
 			//如果不满足where条件，跳过该记录
 			else {
@@ -468,9 +497,32 @@ int RecordManager::conditionDeleteInBlock(std::string tableName, int block_id, T
 		}
 		else if (attr.types[index] == "float") {
 			if (isSatisfied(d[index].dataf, where.data.dataf, where.relation_character) == true) {
-				im->deleteIndexByKey(file_path, attr.types[index], std::to_string(d[index].dataf));
-				p = deleteRecord1(p);
-				count++;
+				if (tuple.isDeleted() == false) {
+					for (int j = 0; j < attr.attributeNames.size(); j++) {
+						if (cm.attributeHasIndex(tmpName, attr.attributeNames[j]) == true) {
+							std::string attr_name = attr.attributeNames[j];
+							std::string file_path = "IndexManager\\" + tmpName + "_" + attr.attributeNames[j] + ".txt";
+							if (attr.types[j] == "int") {
+								std::string key = std::to_string(d[j].datai);
+								im->deleteIndexByKey(file_path, attr.types[j], key);
+							}
+							else if (attr.types[j] == "float") {
+								std::string key = std::to_string(d[j].dataf);
+								im->deleteIndexByKey(file_path, attr.types[j], key);
+							}
+							else {
+								im->deleteIndexByKey(file_path, attr.types[j], d[j].datas);
+							}
+						}
+					}
+					tuple.setDeleted();
+					p = deleteRecord1(p);
+					count++;
+				}
+				else {
+					int len = getTupleLength(p);
+					p = p + len;
+				}
 			}
 			else {
 				int len = getTupleLength(p);
@@ -479,9 +531,32 @@ int RecordManager::conditionDeleteInBlock(std::string tableName, int block_id, T
 		}
 		else {
 			if (isSatisfied(d[index].datas, where.data.datas, where.relation_character) == true) {
-				im->deleteIndexByKey(file_path, attr.types[index], d[index].datas);
-				p = deleteRecord1(p);
-				count++;
+				if (tuple.isDeleted() == false) {
+					for (int j = 0; j < attr.attributeNames.size(); j++) {
+						if (cm.attributeHasIndex(tmpName, attr.attributeNames[j]) == true) {
+							std::string attr_name = attr.attributeNames[j];
+							std::string file_path = "IndexManager\\" + tmpName + "_" + attr.attributeNames[j] + ".txt";
+							if (attr.types[j] == "int") {
+								std::string key = std::to_string(d[j].datai);
+								im->deleteIndexByKey(file_path, attr.types[j], key);
+							}
+							else if (attr.types[j] == "float") {
+								std::string key = std::to_string(d[j].dataf);
+								im->deleteIndexByKey(file_path, attr.types[j], key);
+							}
+							else {
+								im->deleteIndexByKey(file_path, attr.types[j], d[j].datas);
+							}
+						}
+					}
+					tuple.setDeleted();
+					p = deleteRecord1(p);
+					count++;
+				}
+				else {
+					int len = getTupleLength(p);
+					p = p + len;
+				}
 			}
 			else {
 				int len = getTupleLength(p);
