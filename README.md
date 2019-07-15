@@ -1,1 +1,1 @@
-# MyMiniSql
+# GraphEditor
